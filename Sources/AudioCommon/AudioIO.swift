@@ -163,22 +163,14 @@ public final class AudioIO {
             monoBuffer.frameLength = buffer.frameLength
             memcpy(monoBuffer.floatChannelData![0], srcData[0], frameLen * MemoryLayout<Float>.size)
 
-            // Resample
-            let outFrameCount = AVAudioFrameCount(Double(frameLen) * Double(targetSampleRate) / hwFormat.sampleRate)
-            guard outFrameCount > 0,
-                  let outBuffer = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: outFrameCount) else { return }
-
-            var error: NSError?
-            resampler.convert(to: outBuffer, error: &error) { _, outStatus in
-                outStatus.pointee = .haveData
-                return monoBuffer
-            }
-            if error != nil { return }
-
-            guard let outData = outBuffer.floatChannelData else { return }
-            let count = Int(outBuffer.frameLength)
-            guard count > 0 else { return }
-            let samples = Array(UnsafeBufferPointer(start: outData[0], count: count))
+            // Keep the streaming converter's fractional output from one
+            // hardware callback to the next. Truncating every 48 kHz -> 16 kHz
+            // callback loses one sample per three 1024-frame buffers, causing
+            // independently captured playback and microphone clocks to drift.
+            guard let samples = Self.resampleMicrophoneBuffer(
+                monoBuffer, with: resampler, to: targetFormat),
+                  !samples.isEmpty else { return }
+            let count = samples.count
 
             // RMS for audio level
             var sum: Float = 0
@@ -250,6 +242,43 @@ public final class AudioIO {
 
     static func hostTime(from time: AVAudioTime) -> UInt64? {
         time.isHostTimeValid ? time.hostTime : nil
+    }
+
+    /// Resample one microphone callback while preserving converter carry.
+    ///
+    /// `AVAudioConverter` may emit a fractional-rate remainder on a later
+    /// call. The destination therefore needs headroom beyond the truncated
+    /// per-buffer ratio, and the input block must supply each hardware buffer
+    /// exactly once. Internal for deterministic long-stream regression tests.
+    static func resampleMicrophoneBuffer(
+        _ inputBuffer: AVAudioPCMBuffer,
+        with converter: AVAudioConverter,
+        to targetFormat: AVAudioFormat
+    ) -> [Float]? {
+        let ratio = targetFormat.sampleRate / inputBuffer.format.sampleRate
+        let capacity = AVAudioFrameCount(
+            (Double(inputBuffer.frameLength) * ratio).rounded(.up) + 16)
+        guard capacity > 0,
+              let outputBuffer = AVAudioPCMBuffer(
+                pcmFormat: targetFormat, frameCapacity: capacity)
+        else { return nil }
+
+        var conversionError: NSError?
+        var consumed = false
+        converter.convert(to: outputBuffer, error: &conversionError) { _, status in
+            if consumed {
+                status.pointee = .noDataNow
+                return nil
+            }
+            consumed = true
+            status.pointee = .haveData
+            return inputBuffer
+        }
+        guard conversionError == nil else { return nil }
+
+        let count = Int(outputBuffer.frameLength)
+        guard count > 0, let data = outputBuffer.floatChannelData else { return [] }
+        return Array(UnsafeBufferPointer(start: data[0], count: count))
     }
 }
 #endif
