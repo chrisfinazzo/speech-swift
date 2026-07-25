@@ -227,6 +227,11 @@ public let MODEL_REGISTRY: [ModelVariant] = [
           modelId: SpeechEnhancer.defaultModelId,
           aliases: ["deepfilternet3", "denoise", "dfn3"],
           kind: .enhance),
+    .init(name: "deepfilternet3-mlx",
+          engine: "deepfilternet3",
+          modelId: SpeechEnhancer.defaultMLXModelId,
+          aliases: ["denoise-mlx", "dfn3-mlx"],
+          kind: .enhance),
 
     // ─── Music / SFX generation ────────────────────────────────────────────
     .init(name: "magnet-small-30s-mlx-int4",

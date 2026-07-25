@@ -40,7 +40,9 @@ enum DeepFilterNet3WeightLoader {
     }
 
     /// Parse the auxiliary.npz file containing signal processing constants.
-    private static func loadAuxiliaryData(from url: URL) throws -> AuxiliaryData {
+    /// (Internal so the MLX loader in ``MLXDeepFilterNet3Network.swift`` can
+    /// reuse it — both backends ship the identical npz.)
+    static func loadAuxiliaryData(from url: URL) throws -> AuxiliaryData {
         let arrays = try NpzReader.read(url: url)
 
         guard let erbFb = arrays["erb_fb"],
