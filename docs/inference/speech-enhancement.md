@@ -2,7 +2,10 @@
 
 ## Overview
 
-DeepFilterNet3 (Interspeech 2023) removes background noise from speech in real-time. Runs on Apple Neural Engine via Core ML (~2.1M params, 8-bit palettized weights with FP16 compute, ~2.2 MB).
+DeepFilterNet3 (Interspeech 2023) removes background noise from speech in real-time. Two interchangeable engines run the neural network:
+
+- **Core ML** (default) — Apple Neural Engine, 8-bit palettized weights with FP16 compute, ~2.2 MB
+- **MLX** — GPU via Metal, fp32 safetensors, ~8.1 MB, no single-shot length cap
 
 ```
 Audio 48kHz → STFT (960-pt, 480 hop, Vorbis window, 1/960 analysis scale) → 481 complex bins
@@ -12,7 +15,32 @@ Audio 48kHz → STFT (960-pt, 480 hop, Vorbis window, 1/960 analysis scale) → 
   → iSTFT → Enhanced audio 48kHz
 ```
 
-Neural network runs on **Neural Engine** (Core ML). Signal processing (STFT, ERB filterbank, deep filtering) runs on **CPU** (Accelerate/vDSP).
+Signal processing (STFT, ERB filterbank, deep filtering) runs on **CPU** (Accelerate/vDSP) with either engine.
+
+## Engines
+
+```swift
+let enhancer = try await SpeechEnhancer.fromPretrained()             // Core ML (default)
+let enhancer = try await SpeechEnhancer.fromPretrained(engine: .mlx) // MLX
+```
+
+Passing a model ID whose name contains "MLX" selects the MLX engine
+automatically, so `--model aufklarer/DeepFilterNet3-MLX` and the
+`deepfilternet3-mlx` server registry entry work without an explicit engine
+parameter.
+
+| | Core ML (`.coreml`) | MLX (`.mlx`) |
+|---|---|---|
+| Model repo | `aufklarer/DeepFilterNet3-CoreML` | `aufklarer/DeepFilterNet3-MLX` |
+| Weights | 8-bit palettized, FP16 compute, 2.2 MB | fp32 safetensors, 8.1 MB |
+| Compute | Neural Engine + CPU | GPU (Metal) |
+| Single-shot cap | ~60 s (`RangeDim(1, 6000)`) | none (memory-bound) |
+| Quality | PESQ 2.907 (VoiceBank-DEMAND 30-clip) | PESQ 2.900–2.902, matches the fp32 PyTorch reference |
+
+Both engines share the DSP path and the `auxiliary.npz` constants; the MLX
+network is validated against the PyTorch reference to ~1e-6 at the tensor
+level (CPU stream). The GRU hidden state re-zeros per `predict` call on both
+engines, so `enhanceChunked` behaves identically.
 
 The STFT follows the reference `libdf` normalization convention: the forward
 DFT is scaled by `1 / fftSize` and the inverse DFT is unscaled. Moving that
@@ -115,6 +143,9 @@ swift run speech denoise long_meeting.wav
 # Tune the chunk window or disable chunking entirely:
 swift run speech denoise long.wav --chunk-seconds 30 --overlap-ms 300
 swift run speech denoise short.wav --no-chunk     # error if > 60 s
+
+# MLX engine (GPU, fp32):
+swift run speech denoise noisy.wav --engine mlx
 ```
 
 ## Model bundle
@@ -124,6 +155,13 @@ DSP constants. speech-swift downloads the compiled bundle directly:
 
 - `DeepFilterNet3.mlmodelc` (~2.2 MB) — pre-compiled Core ML model with 8-bit palettized weights and FP16 compute
 - `auxiliary.npz` (~126 KB) — ERB filterbank, Vorbis window, normalization states
+
+The MLX repository (`aufklarer/DeepFilterNet3-MLX`) ships:
+
+- `model.safetensors` (~8.1 MB) — fp32 weights in MLX layouts (BatchNorm fused, mlx GRU bias convention)
+- `auxiliary.npz` — identical DSP constants
+- `config.json` — model + DSP hyperparameters
+- `dfn3_mlx.py` — pure-Python-MLX reference implementation of the network
 
 ## References
 

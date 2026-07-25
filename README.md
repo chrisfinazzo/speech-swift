@@ -84,7 +84,7 @@ On-device speech recognition, synthesis, and understanding for Mac and iOS. Runs
 
 **Enhancement, Separation & Audio Generation**
 
-- **[DeepFilterNet3](https://soniqo.audio/guides/denoise)** — Real-time noise suppression (2.1M params, 48 kHz). Long-form audio above the 60 s single-shot cap is auto-chunked with crossfade — see `enhanceChunked(...)`
+- **[DeepFilterNet3](https://soniqo.audio/guides/denoise)** — Real-time noise suppression (2.1M params, 48 kHz) on Core ML (Neural Engine) or MLX (GPU, fp32). Long-form audio above the 60 s single-shot cap is auto-chunked with crossfade — see `enhanceChunked(...)`
 - **[LocalVQE v1.4-AEC](https://soniqo.audio/guides/echo-cancellation)** — Streaming acoustic echo cancellation from separate, synchronized microphone and playback-reference streams (Core ML + native adaptive filter, 16 kHz, 16 ms algorithmic latency)
 - **[Source Separation](https://soniqo.audio/guides/separate)** — Music source separation via HTDemucs (Demucs v4) + Open-Unmix (UMX-HQ / UMX-L, 4 stems: vocals/drums/bass/other, 44.1 kHz stereo)
 - **[MAGNeT](https://soniqo.audio/guides/compose)** — Text-to-music generation (Meta MAGNeT Small 300M / Medium 1.5B, MLX INT8, 30 s clips at 32 kHz mono, masked parallel decoding)
@@ -218,7 +218,7 @@ Compact view below. **[Full model catalogue with sizes, quantisations, download 
 | [Pyannote Community-1](https://huggingface.co/aufklarer/Pyannote-Community-1-CoreML) | Diarization + speaker embeddings | CoreML (ANE) + Swift VBx | 8.35M | Agnostic |
 | [Sortformer](https://huggingface.co/aufklarer/Sortformer-Diarization-CoreML) | [Diarization (E2E), incremental streaming](https://soniqo.audio/guides/diarize) | CoreML (ANE) | 117M | Agnostic |
 | [Ultra-Sortformer 8spk](https://huggingface.co/aufklarer/Ultra-Sortformer-Diarization-CoreML) | Diarization (E2E, up to 8 speakers, experimental) | CoreML (ANE) | 117M | Agnostic |
-| [DeepFilterNet3](https://soniqo.audio/guides/denoise) | Speech Enhancement | CoreML | 2.1M | Agnostic |
+| [DeepFilterNet3](https://soniqo.audio/guides/denoise) | Speech Enhancement | CoreML / MLX | 2.1M | Agnostic |
 | [LocalVQE v1.4-AEC](https://soniqo.audio/guides/echo-cancellation) | Acoustic Echo Cancellation | CoreML + C++ | 200K + 2,742 | Agnostic |
 | [Sidon](https://soniqo.audio/guides/restore) | Speech Restoration (denoise + dereverb, 48 kHz) | CoreML | w2v-BERT 2.0 + DAC (fp16/int8) | Agnostic |
 | [HTDemucs (Demucs v4)](https://soniqo.audio/guides/separate) | Source Separation | MLX | 168M | Agnostic |
@@ -447,7 +447,8 @@ for s in segments { print("Speaker \(s.speakerId): \(s.startTime)s - \(s.endTime
 ```swift
 import SpeechEnhancement
 
-let denoiser = try await DeepFilterNet3Model.fromPretrained()
+let denoiser = try await SpeechEnhancer.fromPretrained()             // CoreML (Neural Engine)
+// let denoiser = try await SpeechEnhancer.fromPretrained(engine: .mlx)  // MLX (GPU, fp32)
 let clean = try denoiser.enhance(audio: noisySamples, sampleRate: 48000)
 ```
 
