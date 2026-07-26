@@ -57,3 +57,4 @@ benchmark-results/
 *.xcodeproj/project.pbxproj
 .DS_Store
 .claude/scheduled_tasks.lock
+/.idea/speech-swift.git-personal.iml
