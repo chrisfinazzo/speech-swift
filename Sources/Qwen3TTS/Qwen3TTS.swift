@@ -1628,14 +1628,24 @@ public extension Qwen3TTSModel {
         // Download main model weights
         let mainCacheDir = try cacheDir ?? HuggingFaceDownloader.getCacheDirectory(for: modelId)
         if !HuggingFaceDownloader.weightsExist(in: mainCacheDir) {
-            progressHandler?(0.1, "Downloading TTS model weights...")
-            try await HuggingFaceDownloader.downloadWeights(
+            progressHandler?(0.1, "Resolving TTS model files...")
+            try await HuggingFaceDownloader.downloadFilesByteWeighted(
                 modelId: modelId,
                 to: mainCacheDir,
-                additionalFiles: ["vocab.json", "merges.txt", "tokenizer_config.json"],
+                files: [
+                    "config.json",
+                    "merges.txt",
+                    "model.safetensors",
+                    "model.safetensors.index.json",
+                    "tokenizer_config.json",
+                    "vocab.json",
+                ],
                 offlineMode: offlineMode,
-                progressHandler: { progress in
-                    progressHandler?(0.1 + progress * 0.3, "Downloading TTS model...")
+                progressHandler: { progress, _, _, fileName in
+                    let status = fileName == "model.safetensors"
+                        ? "Downloading TTS model weights..."
+                        : "Downloading TTS model..."
+                    progressHandler?(0.1 + progress * 0.3, status)
                 })
         }
 
@@ -1643,11 +1653,12 @@ public extension Qwen3TTSModel {
         let tokenizerCacheDir = try HuggingFaceDownloader.getCacheDirectory(for: tokenizerModelId)
         if !HuggingFaceDownloader.weightsExist(in: tokenizerCacheDir) {
             progressHandler?(0.4, "Downloading speech tokenizer...")
-            try await HuggingFaceDownloader.downloadWeights(
+            try await HuggingFaceDownloader.downloadFilesByteWeighted(
                 modelId: tokenizerModelId,
                 to: tokenizerCacheDir,
+                files: ["config.json", "model.safetensors"],
                 offlineMode: offlineMode,
-                progressHandler: { progress in
+                progressHandler: { progress, _, _, _ in
                     progressHandler?(0.4 + progress * 0.2, "Downloading speech tokenizer...")
                 })
         }

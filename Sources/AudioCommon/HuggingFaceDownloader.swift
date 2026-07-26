@@ -552,6 +552,20 @@ public enum HuggingFaceDownloader {
     }
 }
 
+extension HuggingFaceDownloader {
+    static func contentRangeTotal(_ response: HTTPURLResponse) -> Int64? {
+        for (rawKey, rawValue) in response.allHeaderFields {
+            guard String(describing: rawKey).caseInsensitiveCompare("Content-Range") == .orderedSame else {
+                continue
+            }
+            let value = String(describing: rawValue)
+            guard let total = value.split(separator: "/").last else { return nil }
+            return Int64(total)
+        }
+        return nil
+    }
+}
+
 // MARK: - Byte-weighted explicit downloads
 
 private struct ResolvedRemoteFile: Sendable {
@@ -581,18 +595,26 @@ private extension HuggingFaceDownloader {
             }
         }
 
-        var result: [ResolvedRemoteFile] = []
-        result.reserveCapacity(files.count)
-        for file in files {
-            result.append(try await resolveRemoteFile(modelId: modelId, file: file))
+        return try await withThrowingTaskGroup(of: (Int, ResolvedRemoteFile).self) { group in
+            for (index, file) in files.enumerated() {
+                group.addTask {
+                    (index, try await resolveRemoteFile(modelId: modelId, file: file))
+                }
+            }
+
+            var result = Array<ResolvedRemoteFile?>(repeating: nil, count: files.count)
+            for try await (index, file) in group {
+                result[index] = file
+            }
+            return result.compactMap { $0 }
         }
-        return result
     }
 
     static func resolveRemoteFile(modelId: String, file: String) async throws -> ResolvedRemoteFile {
         let url = try resolveURL(modelId: modelId, file: file)
         var request = URLRequest(url: url)
         request.httpMethod = "HEAD"
+        request.timeoutInterval = 30
         applyHubAuth(to: &request)
         let (_, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else {
@@ -601,12 +623,28 @@ private extension HuggingFaceDownloader {
         guard (200..<300).contains(http.statusCode) else {
             throw DownloadError.failedToDownload("\(modelId)/\(file): HTTP \(http.statusCode)")
         }
-        guard let resolved = http.url else {
+        guard let headResolved = http.url else {
             throw DownloadError.failedToDownload("\(modelId)/\(file): missing resolved URL")
         }
-        let size = headerInt64(http, "Content-Length")
+        var resolved = headResolved
+        var size = headerInt64(http, "Content-Length")
             ?? headerInt64(http, "x-linked-size")
             ?? http.expectedContentLength
+        if size <= 0 {
+            var probe = URLRequest(url: url)
+            probe.setValue("bytes=0-0", forHTTPHeaderField: "Range")
+            probe.timeoutInterval = 30
+            probe.cachePolicy = .reloadIgnoringLocalCacheData
+            let (probeData, probeResponse) = try await URLSession.shared.data(for: probe)
+            guard let probeHTTP = probeResponse as? HTTPURLResponse,
+                  probeHTTP.statusCode == 206,
+                  !probeData.isEmpty,
+                  let total = contentRangeTotal(probeHTTP) else {
+                throw DownloadError.failedToDownload("\(modelId)/\(file): missing Content-Range size")
+            }
+            resolved = probeHTTP.url ?? resolved
+            size = total
+        }
         guard size > 0 else {
             throw DownloadError.failedToDownload("\(modelId)/\(file): unknown remote size")
         }
@@ -681,6 +719,7 @@ private extension HuggingFaceDownloader {
         progressHandler: ((Double, Int64, Int64, String) -> Void)?
     ) async throws {
         var request = URLRequest(url: file.url)
+        request.timeoutInterval = 120
         applyHubAuth(to: &request)
         let tempURL = destination
             .deletingLastPathComponent()
@@ -815,6 +854,7 @@ private extension HuggingFaceDownloader {
     ) async throws {
         var request = URLRequest(url: file.url)
         request.setValue("bytes=\(chunk.start)-\(chunk.end)", forHTTPHeaderField: "Range")
+        request.timeoutInterval = 120
         applyHubAuth(to: &request)
 
         let (data, response) = try await session.data(for: request)

@@ -257,6 +257,26 @@ final class HuggingFaceDownloaderTests: XCTestCase {
         XCTAssertTrue(HuggingFaceDownloader.weightsExist(in: tmpDir))
     }
 
+    func testContentRangeTotalParsesByteRange() throws {
+        let response = try XCTUnwrap(HTTPURLResponse(
+            url: URL(string: "https://example.com/model.safetensors")!,
+            statusCode: 206,
+            httpVersion: nil,
+            headerFields: ["Content-Range": "bytes 0-0/1304461214"]))
+
+        XCTAssertEqual(HuggingFaceDownloader.contentRangeTotal(response), 1_304_461_214)
+    }
+
+    func testContentRangeTotalRejectsMalformedHeader() throws {
+        let response = try XCTUnwrap(HTTPURLResponse(
+            url: URL(string: "https://example.com/model.safetensors")!,
+            statusCode: 206,
+            httpVersion: nil,
+            headerFields: ["Content-Range": "bytes 0-0/*"]))
+
+        XCTAssertNil(HuggingFaceDownloader.contentRangeTotal(response))
+    }
+
     // MARK: - Download stall guard
 
     /// A stalled operation (reports progress once, then sleeps forever)
