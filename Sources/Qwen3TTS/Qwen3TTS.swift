@@ -1640,6 +1640,7 @@ public extension Qwen3TTSModel {
                     "tokenizer_config.json",
                     "vocab.json",
                 ],
+                optionalFiles: ["model.safetensors.index.json"],
                 offlineMode: offlineMode,
                 progressHandler: { progress, _, _, fileName in
                     let status = fileName == "model.safetensors"

@@ -5,6 +5,7 @@ import os
 /// Download errors
 public enum DownloadError: Error, LocalizedError {
     case failedToDownload(String)
+    case remoteFileNotFound(modelId: String, file: String)
     case invalidRemoteFileName(String)
     /// A download attempt made no progress for `seconds` and was aborted
     /// so the caller's retry loop can fire instead of hanging.
@@ -14,6 +15,8 @@ public enum DownloadError: Error, LocalizedError {
         switch self {
         case .failedToDownload(let file):
             return "Failed to download: \(file)"
+        case .remoteFileNotFound(let modelId, let file):
+            return "Remote file not found: \(modelId)/\(file)"
         case .invalidRemoteFileName(let file):
             return "Refusing to write unsafe remote file name: \(file)"
         case .stalled(let modelId, let seconds):
@@ -244,6 +247,7 @@ public enum HuggingFaceDownloader {
         modelId: String,
         to directory: URL,
         files: [String],
+        optionalFiles: [String] = [],
         expectedSizes: [String: Int64]? = nil,
         offlineMode: Bool = false,
         retryDelaysSeconds: [Int]? = nil,
@@ -257,9 +261,15 @@ public enum HuggingFaceDownloader {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 
         let safeFiles = try files.map(validatedRemoteFileName)
+        let safeOptionalFiles = Set(try optionalFiles.map(validatedRemoteFileName))
+        guard safeOptionalFiles.isSubset(of: Set(safeFiles)) else {
+            throw DownloadError.failedToDownload(
+                "optionalFiles must be included in files for \(modelId)")
+        }
         if offlineMode {
             let missing = safeFiles.first {
-                !FileManager.default.fileExists(atPath: directory.appendingPathComponent($0).path)
+                !safeOptionalFiles.contains($0)
+                    && !FileManager.default.fileExists(atPath: directory.appendingPathComponent($0).path)
             }
             if let missing {
                 throw DownloadError.failedToDownload(
@@ -277,6 +287,7 @@ public enum HuggingFaceDownloader {
                 let remoteFiles = try await resolveRemoteFiles(
                     modelId: modelId,
                     files: safeFiles,
+                    optionalFiles: safeOptionalFiles,
                     expectedSizes: expectedSizes)
                 try await downloadResolvedFilesByteWeighted(
                     remoteFiles,
@@ -553,6 +564,24 @@ public enum HuggingFaceDownloader {
 }
 
 extension HuggingFaceDownloader {
+    static func makeHubRequest(
+        url: URL,
+        method: String? = nil,
+        range: String? = nil,
+        timeout: TimeInterval? = nil
+    ) -> URLRequest {
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        if let range {
+            request.setValue(range, forHTTPHeaderField: "Range")
+        }
+        if let timeout {
+            request.timeoutInterval = timeout
+        }
+        applyHubAuth(to: &request)
+        return request
+    }
+
     static func contentRangeTotal(_ response: HTTPURLResponse) -> Int64? {
         for (rawKey, rawValue) in response.allHeaderFields {
             guard String(describing: rawKey).caseInsensitiveCompare("Content-Range") == .orderedSame else {
@@ -581,11 +610,13 @@ private extension HuggingFaceDownloader {
     static func resolveRemoteFiles(
         modelId: String,
         files: [String],
+        optionalFiles: Set<String>,
         expectedSizes: [String: Int64]?
     ) async throws -> [ResolvedRemoteFile] {
         if let expectedSizes {
-            return try files.map { file in
+            return try files.compactMap { file in
                 guard let size = expectedSizes[file], size > 0 else {
+                    if optionalFiles.contains(file) { return nil }
                     throw DownloadError.failedToDownload("\(modelId)/\(file): missing expected size")
                 }
                 return ResolvedRemoteFile(
@@ -595,10 +626,14 @@ private extension HuggingFaceDownloader {
             }
         }
 
-        return try await withThrowingTaskGroup(of: (Int, ResolvedRemoteFile).self) { group in
+        return try await withThrowingTaskGroup(of: (Int, ResolvedRemoteFile?).self) { group in
             for (index, file) in files.enumerated() {
                 group.addTask {
-                    (index, try await resolveRemoteFile(modelId: modelId, file: file))
+                    do {
+                        return (index, try await resolveRemoteFile(modelId: modelId, file: file))
+                    } catch DownloadError.remoteFileNotFound where optionalFiles.contains(file) {
+                        return (index, nil)
+                    }
                 }
             }
 
@@ -612,13 +647,13 @@ private extension HuggingFaceDownloader {
 
     static func resolveRemoteFile(modelId: String, file: String) async throws -> ResolvedRemoteFile {
         let url = try resolveURL(modelId: modelId, file: file)
-        var request = URLRequest(url: url)
-        request.httpMethod = "HEAD"
-        request.timeoutInterval = 30
-        applyHubAuth(to: &request)
+        let request = makeHubRequest(url: url, method: "HEAD", timeout: 30)
         let (_, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else {
             throw DownloadError.failedToDownload("\(modelId)/\(file): missing HTTP response")
+        }
+        if http.statusCode == 404 {
+            throw DownloadError.remoteFileNotFound(modelId: modelId, file: file)
         }
         guard (200..<300).contains(http.statusCode) else {
             throw DownloadError.failedToDownload("\(modelId)/\(file): HTTP \(http.statusCode)")
@@ -631,9 +666,7 @@ private extension HuggingFaceDownloader {
             ?? headerInt64(http, "x-linked-size")
             ?? http.expectedContentLength
         if size <= 0 {
-            var probe = URLRequest(url: url)
-            probe.setValue("bytes=0-0", forHTTPHeaderField: "Range")
-            probe.timeoutInterval = 30
+            var probe = makeHubRequest(url: url, range: "bytes=0-0", timeout: 30)
             probe.cachePolicy = .reloadIgnoringLocalCacheData
             let (probeData, probeResponse) = try await URLSession.shared.data(for: probe)
             guard let probeHTTP = probeResponse as? HTTPURLResponse,
@@ -718,9 +751,7 @@ private extension HuggingFaceDownloader {
         totalBytes: Int64,
         progressHandler: ((Double, Int64, Int64, String) -> Void)?
     ) async throws {
-        var request = URLRequest(url: file.url)
-        request.timeoutInterval = 120
-        applyHubAuth(to: &request)
+        let request = makeHubRequest(url: file.url, timeout: 120)
         let tempURL = destination
             .deletingLastPathComponent()
             .appendingPathComponent(".\(destination.lastPathComponent).download")
@@ -852,10 +883,10 @@ private extension HuggingFaceDownloader {
         state: RangedDownloadProgress,
         session: URLSession
     ) async throws {
-        var request = URLRequest(url: file.url)
-        request.setValue("bytes=\(chunk.start)-\(chunk.end)", forHTTPHeaderField: "Range")
-        request.timeoutInterval = 120
-        applyHubAuth(to: &request)
+        let request = makeHubRequest(
+            url: file.url,
+            range: "bytes=\(chunk.start)-\(chunk.end)",
+            timeout: 120)
 
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else {

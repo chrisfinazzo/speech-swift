@@ -1156,6 +1156,28 @@ final class E2ETTS17BTests: XCTestCase {
         XCTAssertEqual(model.config.talker.hiddenSize, 2048, "Should be 1.7B (hidden=2048)")
     }
 
+    /// A clean cache must load the single-file 1.7B bf16 repository, which has
+    /// no model.safetensors.index.json.
+    func testFreshCacheModelLoading17BBf16() async throws {
+        let cacheDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("qwen3-tts-17b-bf16-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: cacheDir) }
+
+        let model = try await Qwen3TTSModel.fromPretrained(
+            modelId: Self.ttsModelIdBf16,
+            tokenizerModelId: Self.ttsTokenizerModelId,
+            cacheDir: cacheDir
+        ) { progress, status in
+            print("[TTS-fresh-cache \(Int(progress * 100))%] \(status)")
+        }
+
+        XCTAssertEqual(model.config.talker.bits, 0, "Should load as bf16 (no quantization)")
+        XCTAssertTrue(FileManager.default.fileExists(
+            atPath: cacheDir.appendingPathComponent("model.safetensors").path))
+        XCTAssertFalse(FileManager.default.fileExists(
+            atPath: cacheDir.appendingPathComponent("model.safetensors.index.json").path))
+    }
+
     /// 1.7B bf16 -> ASR round-trip
     func testRoundTrip17BBf16() async throws {
         let ttsModel = try await loadBf16Model()

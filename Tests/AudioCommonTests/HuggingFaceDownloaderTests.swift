@@ -257,6 +257,39 @@ final class HuggingFaceDownloaderTests: XCTestCase {
         XCTAssertTrue(HuggingFaceDownloader.weightsExist(in: tmpDir))
     }
 
+    func testByteWeightedDownloadAllowsMissingOptionalIndexOffline() async throws {
+        let tmpDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("optional_index_\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tmpDir) }
+
+        try Data([0x00]).write(to: tmpDir.appendingPathComponent("model.safetensors"))
+
+        try await HuggingFaceDownloader.downloadFilesByteWeighted(
+            modelId: "fake/single-file-model",
+            to: tmpDir,
+            files: ["model.safetensors", "model.safetensors.index.json"],
+            optionalFiles: ["model.safetensors.index.json"],
+            offlineMode: true)
+    }
+
+    func testHubRequestPropagatesTokenToRangeProbeRequest() {
+        let previous = ProcessInfo.processInfo.environment["HF_TOKEN"]
+        setenv("HF_TOKEN", "test-token", 1)
+        defer {
+            if let previous { setenv("HF_TOKEN", previous, 1) }
+            else { unsetenv("HF_TOKEN") }
+        }
+
+        let request = HuggingFaceDownloader.makeHubRequest(
+            url: URL(string: "https://huggingface.co/example/model/resolve/main/model.safetensors")!,
+            range: "bytes=0-0",
+            timeout: 30)
+
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-token")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Range"), "bytes=0-0")
+    }
+
     func testContentRangeTotalParsesByteRange() throws {
         let response = try XCTUnwrap(HTTPURLResponse(
             url: URL(string: "https://example.com/model.safetensors")!,
