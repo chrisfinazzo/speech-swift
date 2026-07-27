@@ -1156,6 +1156,60 @@ final class E2ETTS17BTests: XCTestCase {
         XCTAssertEqual(model.config.talker.hiddenSize, 2048, "Should be 1.7B (hidden=2048)")
     }
 
+    /// Fresh-cache resolution must work for every shipped bundle layout.
+    ///
+    /// This is the regression the byte-weighted download path exists for: the
+    /// bf16 repo ships a lone `model.safetensors` with no index, the 8-bit
+    /// repos ship an index alongside it. Resolution is checked directly rather
+    /// than through `fromPretrained` so the guard costs four metadata requests
+    /// instead of re-downloading multi-GB weights on every E2E run.
+    func testFreshCacheResolvesEveryBundleLayout() async throws {
+        for modelId in TTSModelVariant.allCases.map(\.rawValue) {
+            let files = try await Qwen3TTSModel.resolveBundleFiles(
+                modelId: modelId,
+                assets: ["config.json", "merges.txt", "tokenizer_config.json", "vocab.json"],
+                cacheDir: FileManager.default.temporaryDirectory,
+                offlineMode: false)
+
+            XCTAssertTrue(
+                files.contains { $0.hasSuffix(".safetensors") },
+                "\(modelId): resolved no weight file")
+            for asset in ["config.json", "merges.txt", "tokenizer_config.json", "vocab.json"] {
+                XCTAssertTrue(files.contains(asset), "\(modelId): missing \(asset)")
+            }
+        }
+    }
+
+    /// The speech tokenizer lives in an upstream repository we don't control,
+    /// so its layout is resolved rather than assumed.
+    func testTokenizerBundleResolves() async throws {
+        let files = try await Qwen3TTSModel.resolveBundleFiles(
+            modelId: Self.ttsTokenizerModelId,
+            assets: ["config.json"],
+            cacheDir: FileManager.default.temporaryDirectory,
+            offlineMode: false)
+
+        XCTAssertTrue(files.contains("config.json"))
+        XCTAssertTrue(files.contains { $0.hasSuffix(".safetensors") })
+    }
+
+    /// Offline with an empty cache fails fast with an actionable message
+    /// instead of attempting a network listing.
+    func testOfflineResolutionFailsWithoutNetwork() async throws {
+        do {
+            _ = try await Qwen3TTSModel.resolveBundleFiles(
+                modelId: Self.ttsModelIdBf16,
+                assets: ["config.json"],
+                cacheDir: FileManager.default.temporaryDirectory,
+                offlineMode: true)
+            XCTFail("offline resolution with no cached weights should throw")
+        } catch {
+            XCTAssertTrue(
+                "\(error)".contains("offline cache miss"),
+                "unexpected error: \(error)")
+        }
+    }
+
     /// 1.7B bf16 -> ASR round-trip
     func testRoundTrip17BBf16() async throws {
         let ttsModel = try await loadBf16Model()

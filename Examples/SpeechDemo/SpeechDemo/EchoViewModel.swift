@@ -56,7 +56,14 @@ final class EchoViewModel {
             loadingStatus = "Loading TTS (Qwen3 Base)..."
             tts = try await Task.detached {
                 try await Qwen3TTSModel.fromPretrained(
-                    modelId: TTSModelVariant.base.rawValue)
+                    modelId: TTSModelVariant.base.rawValue
+                ) { (progress: Double, status: String) in
+                    DispatchQueue.main.async { [weak self] in
+                        self?.loadingStatus = status.isEmpty
+                            ? "Loading TTS... \(Int(progress * 100))%"
+                            : "\(status) (\(Int(progress * 100))%)"
+                    }
+                }
             }.value
 
             appendLog("All models loaded.")

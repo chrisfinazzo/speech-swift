@@ -552,6 +552,73 @@ public enum HuggingFaceDownloader {
     }
 }
 
+extension HuggingFaceDownloader {
+    /// List the files a model repository actually ships.
+    ///
+    /// `downloadFilesByteWeighted` takes an explicit file list, which a caller
+    /// can only write down if it already knows the bundle layout. Weight files
+    /// are the case where it doesn't: a repo may ship one `model.safetensors`,
+    /// or numbered shards plus an index, and the same model can change layout
+    /// on a re-export. `downloadWeights` handles that with a `*.safetensors`
+    /// glob; this is the equivalent for the byte-weighted path — resolve the
+    /// names from Hub metadata instead of hardcoding them.
+    public static func listRepoFiles(modelId: String) async throws -> [String] {
+        let endpoint = (resolvedEndpoint() ?? "https://huggingface.co")
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        guard let url = URL(string: "\(endpoint)/api/models/\(modelId)") else {
+            throw DownloadError.failedToDownload("\(modelId): invalid metadata URL")
+        }
+        let request = makeHubRequest(url: url, timeout: 30)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else {
+            throw DownloadError.failedToDownload("\(modelId): missing HTTP response for file listing")
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            throw DownloadError.failedToDownload("\(modelId): file listing HTTP \(http.statusCode)")
+        }
+        return try parseRepoFileListing(data, modelId: modelId)
+    }
+
+    /// Extract `siblings[].rfilename` from a Hub model-metadata payload.
+    static func parseRepoFileListing(_ data: Data, modelId: String) throws -> [String] {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let siblings = json["siblings"] as? [[String: Any]] else {
+            throw DownloadError.failedToDownload("\(modelId): malformed file listing")
+        }
+        return siblings.compactMap { $0["rfilename"] as? String }
+    }
+
+    static func makeHubRequest(
+        url: URL,
+        method: String? = nil,
+        range: String? = nil,
+        timeout: TimeInterval? = nil
+    ) -> URLRequest {
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        if let range {
+            request.setValue(range, forHTTPHeaderField: "Range")
+        }
+        if let timeout {
+            request.timeoutInterval = timeout
+        }
+        applyHubAuth(to: &request)
+        return request
+    }
+
+    static func contentRangeTotal(_ response: HTTPURLResponse) -> Int64? {
+        for (rawKey, rawValue) in response.allHeaderFields {
+            guard String(describing: rawKey).caseInsensitiveCompare("Content-Range") == .orderedSame else {
+                continue
+            }
+            let value = String(describing: rawValue)
+            guard let total = value.split(separator: "/").last else { return nil }
+            return Int64(total)
+        }
+        return nil
+    }
+}
+
 // MARK: - Byte-weighted explicit downloads
 
 private struct ResolvedRemoteFile: Sendable {
@@ -581,19 +648,24 @@ private extension HuggingFaceDownloader {
             }
         }
 
-        var result: [ResolvedRemoteFile] = []
-        result.reserveCapacity(files.count)
-        for file in files {
-            result.append(try await resolveRemoteFile(modelId: modelId, file: file))
+        return try await withThrowingTaskGroup(of: (Int, ResolvedRemoteFile).self) { group in
+            for (index, file) in files.enumerated() {
+                group.addTask {
+                    (index, try await resolveRemoteFile(modelId: modelId, file: file))
+                }
+            }
+
+            var result = Array<ResolvedRemoteFile?>(repeating: nil, count: files.count)
+            for try await (index, file) in group {
+                result[index] = file
+            }
+            return result.compactMap { $0 }
         }
-        return result
     }
 
     static func resolveRemoteFile(modelId: String, file: String) async throws -> ResolvedRemoteFile {
         let url = try resolveURL(modelId: modelId, file: file)
-        var request = URLRequest(url: url)
-        request.httpMethod = "HEAD"
-        applyHubAuth(to: &request)
+        let request = makeHubRequest(url: url, method: "HEAD", timeout: 30)
         let (_, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else {
             throw DownloadError.failedToDownload("\(modelId)/\(file): missing HTTP response")
@@ -601,12 +673,26 @@ private extension HuggingFaceDownloader {
         guard (200..<300).contains(http.statusCode) else {
             throw DownloadError.failedToDownload("\(modelId)/\(file): HTTP \(http.statusCode)")
         }
-        guard let resolved = http.url else {
+        guard let headResolved = http.url else {
             throw DownloadError.failedToDownload("\(modelId)/\(file): missing resolved URL")
         }
-        let size = headerInt64(http, "Content-Length")
+        var resolved = headResolved
+        var size = headerInt64(http, "Content-Length")
             ?? headerInt64(http, "x-linked-size")
             ?? http.expectedContentLength
+        if size <= 0 {
+            var probe = makeHubRequest(url: url, range: "bytes=0-0", timeout: 30)
+            probe.cachePolicy = .reloadIgnoringLocalCacheData
+            let (probeData, probeResponse) = try await URLSession.shared.data(for: probe)
+            guard let probeHTTP = probeResponse as? HTTPURLResponse,
+                  probeHTTP.statusCode == 206,
+                  !probeData.isEmpty,
+                  let total = contentRangeTotal(probeHTTP) else {
+                throw DownloadError.failedToDownload("\(modelId)/\(file): missing Content-Range size")
+            }
+            resolved = probeHTTP.url ?? resolved
+            size = total
+        }
         guard size > 0 else {
             throw DownloadError.failedToDownload("\(modelId)/\(file): unknown remote size")
         }
@@ -680,8 +766,7 @@ private extension HuggingFaceDownloader {
         totalBytes: Int64,
         progressHandler: ((Double, Int64, Int64, String) -> Void)?
     ) async throws {
-        var request = URLRequest(url: file.url)
-        applyHubAuth(to: &request)
+        let request = makeHubRequest(url: file.url, timeout: 120)
         let tempURL = destination
             .deletingLastPathComponent()
             .appendingPathComponent(".\(destination.lastPathComponent).download")
@@ -813,9 +898,10 @@ private extension HuggingFaceDownloader {
         state: RangedDownloadProgress,
         session: URLSession
     ) async throws {
-        var request = URLRequest(url: file.url)
-        request.setValue("bytes=\(chunk.start)-\(chunk.end)", forHTTPHeaderField: "Range")
-        applyHubAuth(to: &request)
+        let request = makeHubRequest(
+            url: file.url,
+            range: "bytes=\(chunk.start)-\(chunk.end)",
+            timeout: 120)
 
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else {

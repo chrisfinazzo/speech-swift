@@ -257,6 +257,121 @@ final class HuggingFaceDownloaderTests: XCTestCase {
         XCTAssertTrue(HuggingFaceDownloader.weightsExist(in: tmpDir))
     }
 
+    /// Offline is satisfied only when every resolved file is already cached —
+    /// callers resolve the file set from the repository listing, so anything in
+    /// that list is genuinely required.
+    func testByteWeightedOfflineSucceedsWhenEveryFileIsCached() async throws {
+        let tmpDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("offline_hit_\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tmpDir) }
+
+        try Data([0x00]).write(to: tmpDir.appendingPathComponent("model.safetensors"))
+        try Data([0x00]).write(to: tmpDir.appendingPathComponent("config.json"))
+
+        try await HuggingFaceDownloader.downloadFilesByteWeighted(
+            modelId: "fake/single-file-model",
+            to: tmpDir,
+            files: ["model.safetensors", "config.json"],
+            offlineMode: true)
+    }
+
+    func testByteWeightedOfflineNamesTheMissingFile() async throws {
+        let tmpDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("offline_miss_\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tmpDir) }
+
+        try Data([0x00]).write(to: tmpDir.appendingPathComponent("model.safetensors"))
+
+        do {
+            try await HuggingFaceDownloader.downloadFilesByteWeighted(
+                modelId: "fake/single-file-model",
+                to: tmpDir,
+                files: ["model.safetensors", "config.json"],
+                offlineMode: true)
+            XCTFail("offline download with a missing file should throw")
+        } catch {
+            XCTAssertTrue("\(error)".contains("config.json"), "unexpected error: \(error)")
+        }
+    }
+
+    func testHubRequestPropagatesTokenToRangeProbeRequest() {
+        let previous = ProcessInfo.processInfo.environment["HF_TOKEN"]
+        setenv("HF_TOKEN", "test-token", 1)
+        defer {
+            if let previous { setenv("HF_TOKEN", previous, 1) }
+            else { unsetenv("HF_TOKEN") }
+        }
+
+        let request = HuggingFaceDownloader.makeHubRequest(
+            url: URL(string: "https://huggingface.co/example/model/resolve/main/model.safetensors")!,
+            range: "bytes=0-0",
+            timeout: 30)
+
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-token")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Range"), "bytes=0-0")
+    }
+
+    func testContentRangeTotalParsesByteRange() throws {
+        let response = try XCTUnwrap(HTTPURLResponse(
+            url: URL(string: "https://example.com/model.safetensors")!,
+            statusCode: 206,
+            httpVersion: nil,
+            headerFields: ["Content-Range": "bytes 0-0/1304461214"]))
+
+        XCTAssertEqual(HuggingFaceDownloader.contentRangeTotal(response), 1_304_461_214)
+    }
+
+    func testContentRangeTotalRejectsMalformedHeader() throws {
+        let response = try XCTUnwrap(HTTPURLResponse(
+            url: URL(string: "https://example.com/model.safetensors")!,
+            statusCode: 206,
+            httpVersion: nil,
+            headerFields: ["Content-Range": "bytes 0-0/*"]))
+
+        XCTAssertNil(HuggingFaceDownloader.contentRangeTotal(response))
+    }
+
+    // MARK: - Repository file listing
+
+    /// Shard names can't be hardcoded, so weight files are resolved from Hub
+    /// metadata. Parsing is covered without network so CI guards it.
+    func testParseRepoFileListingExtractsShardNames() throws {
+        let payload = Data("""
+        {"id":"org/model","siblings":[
+          {"rfilename":"config.json"},
+          {"rfilename":"model-00001-of-00002.safetensors"},
+          {"rfilename":"model-00002-of-00002.safetensors"},
+          {"rfilename":"model.safetensors.index.json"}
+        ]}
+        """.utf8)
+
+        let files = try HuggingFaceDownloader.parseRepoFileListing(payload, modelId: "org/model")
+
+        XCTAssertEqual(files, [
+            "config.json",
+            "model-00001-of-00002.safetensors",
+            "model-00002-of-00002.safetensors",
+            "model.safetensors.index.json",
+        ])
+    }
+
+    func testParseRepoFileListingIgnoresEntriesWithoutFilenames() throws {
+        let payload = Data("""
+        {"siblings":[{"rfilename":"config.json"},{"size":42}]}
+        """.utf8)
+
+        XCTAssertEqual(
+            try HuggingFaceDownloader.parseRepoFileListing(payload, modelId: "org/model"),
+            ["config.json"])
+    }
+
+    func testParseRepoFileListingRejectsMalformedPayload() {
+        XCTAssertThrowsError(
+            try HuggingFaceDownloader.parseRepoFileListing(Data("not json".utf8), modelId: "org/model"))
+    }
+
     // MARK: - Download stall guard
 
     /// A stalled operation (reports progress once, then sleeps forever)

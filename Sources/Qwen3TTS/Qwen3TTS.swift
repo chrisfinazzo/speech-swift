@@ -1611,6 +1611,41 @@ public class Qwen3TTSModel {
 // MARK: - Model Loading
 
 public extension Qwen3TTSModel {
+    /// Resolve the file set for a bundle: the fixed asset names plus whatever
+    /// weight files the repository actually ships.
+    ///
+    /// Bundle layout varies across variants — the bf16 repos ship a single
+    /// `model.safetensors` with no index, the 8-bit repos ship an index next to
+    /// it, and a re-export could ship numbered shards. Naming the weight files
+    /// here would turn any of those into a 404 at load time, so they come from
+    /// the repo listing. Assets are intersected with the listing for the same
+    /// reason: request only what exists, matching the glob semantics the
+    /// `downloadWeights` path has.
+    internal static func resolveBundleFiles(
+        modelId: String,
+        assets: [String],
+        cacheDir: URL,
+        offlineMode: Bool
+    ) async throws -> [String] {
+        guard !offlineMode else {
+            // Listing needs the network, and callers only reach here when the
+            // cache holds no weights — offline resolution has nothing to add.
+            throw DownloadError.failedToDownload(
+                "\(modelId) offline cache miss: no model weights in \(cacheDir.path)")
+        }
+
+        let repoFiles = try await HuggingFaceDownloader.listRepoFiles(modelId: modelId)
+        let weights = repoFiles.filter {
+            $0.hasSuffix(".safetensors") || $0 == "model.safetensors.index.json"
+        }
+        guard weights.contains(where: { $0.hasSuffix(".safetensors") }) else {
+            throw DownloadError.failedToDownload(
+                "\(modelId): repository ships no .safetensors weights")
+        }
+        let present = Set(repoFiles)
+        return assets.filter(present.contains) + weights
+    }
+
     /// Load model from HuggingFace hub
     static func fromPretrained(
         modelId: String = Qwen3TTSModel.defaultModelId,
@@ -1628,14 +1663,22 @@ public extension Qwen3TTSModel {
         // Download main model weights
         let mainCacheDir = try cacheDir ?? HuggingFaceDownloader.getCacheDirectory(for: modelId)
         if !HuggingFaceDownloader.weightsExist(in: mainCacheDir) {
-            progressHandler?(0.1, "Downloading TTS model weights...")
-            try await HuggingFaceDownloader.downloadWeights(
+            progressHandler?(0.1, "Resolving TTS model files...")
+            let files = try await resolveBundleFiles(
+                modelId: modelId,
+                assets: ["config.json", "merges.txt", "tokenizer_config.json", "vocab.json"],
+                cacheDir: mainCacheDir,
+                offlineMode: offlineMode)
+            try await HuggingFaceDownloader.downloadFilesByteWeighted(
                 modelId: modelId,
                 to: mainCacheDir,
-                additionalFiles: ["vocab.json", "merges.txt", "tokenizer_config.json"],
+                files: files,
                 offlineMode: offlineMode,
-                progressHandler: { progress in
-                    progressHandler?(0.1 + progress * 0.3, "Downloading TTS model...")
+                progressHandler: { progress, _, _, fileName in
+                    let status = fileName.hasSuffix(".safetensors")
+                        ? "Downloading TTS model weights..."
+                        : "Downloading TTS model..."
+                    progressHandler?(0.1 + progress * 0.3, status)
                 })
         }
 
@@ -1643,11 +1686,17 @@ public extension Qwen3TTSModel {
         let tokenizerCacheDir = try HuggingFaceDownloader.getCacheDirectory(for: tokenizerModelId)
         if !HuggingFaceDownloader.weightsExist(in: tokenizerCacheDir) {
             progressHandler?(0.4, "Downloading speech tokenizer...")
-            try await HuggingFaceDownloader.downloadWeights(
+            let files = try await resolveBundleFiles(
+                modelId: tokenizerModelId,
+                assets: ["config.json"],
+                cacheDir: tokenizerCacheDir,
+                offlineMode: offlineMode)
+            try await HuggingFaceDownloader.downloadFilesByteWeighted(
                 modelId: tokenizerModelId,
                 to: tokenizerCacheDir,
+                files: files,
                 offlineMode: offlineMode,
-                progressHandler: { progress in
+                progressHandler: { progress, _, _, _ in
                     progressHandler?(0.4 + progress * 0.2, "Downloading speech tokenizer...")
                 })
         }
