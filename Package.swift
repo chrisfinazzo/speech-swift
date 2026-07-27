@@ -443,6 +443,8 @@ let package = Package(
                 "AudioCommon",
                 "MLXCommon",
                 "LocalVQEAECFrontend",
+                .product(name: "MLX", package: "mlx-swift"),
+                .product(name: "MLXNN", package: "mlx-swift"),
             ]
         ),
         .target(
