@@ -564,6 +564,41 @@ public enum HuggingFaceDownloader {
 }
 
 extension HuggingFaceDownloader {
+    /// List the files a model repository actually ships.
+    ///
+    /// `downloadFilesByteWeighted` takes an explicit file list, which a caller
+    /// can only write down if it already knows the bundle layout. Weight files
+    /// are the case where it doesn't: a repo may ship one `model.safetensors`,
+    /// or numbered shards plus an index, and the same model can change layout
+    /// on a re-export. `downloadWeights` handles that with a `*.safetensors`
+    /// glob; this is the equivalent for the byte-weighted path — resolve the
+    /// names from Hub metadata instead of hardcoding them.
+    public static func listRepoFiles(modelId: String) async throws -> [String] {
+        let endpoint = (resolvedEndpoint() ?? "https://huggingface.co")
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        guard let url = URL(string: "\(endpoint)/api/models/\(modelId)") else {
+            throw DownloadError.failedToDownload("\(modelId): invalid metadata URL")
+        }
+        let request = makeHubRequest(url: url, timeout: 30)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else {
+            throw DownloadError.failedToDownload("\(modelId): missing HTTP response for file listing")
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            throw DownloadError.failedToDownload("\(modelId): file listing HTTP \(http.statusCode)")
+        }
+        return try parseRepoFileListing(data, modelId: modelId)
+    }
+
+    /// Extract `siblings[].rfilename` from a Hub model-metadata payload.
+    static func parseRepoFileListing(_ data: Data, modelId: String) throws -> [String] {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let siblings = json["siblings"] as? [[String: Any]] else {
+            throw DownloadError.failedToDownload("\(modelId): malformed file listing")
+        }
+        return siblings.compactMap { $0["rfilename"] as? String }
+    }
+
     static func makeHubRequest(
         url: URL,
         method: String? = nil,

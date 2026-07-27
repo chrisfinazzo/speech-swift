@@ -310,6 +310,45 @@ final class HuggingFaceDownloaderTests: XCTestCase {
         XCTAssertNil(HuggingFaceDownloader.contentRangeTotal(response))
     }
 
+    // MARK: - Repository file listing
+
+    /// Shard names can't be hardcoded, so weight files are resolved from Hub
+    /// metadata. Parsing is covered without network so CI guards it.
+    func testParseRepoFileListingExtractsShardNames() throws {
+        let payload = Data("""
+        {"id":"org/model","siblings":[
+          {"rfilename":"config.json"},
+          {"rfilename":"model-00001-of-00002.safetensors"},
+          {"rfilename":"model-00002-of-00002.safetensors"},
+          {"rfilename":"model.safetensors.index.json"}
+        ]}
+        """.utf8)
+
+        let files = try HuggingFaceDownloader.parseRepoFileListing(payload, modelId: "org/model")
+
+        XCTAssertEqual(files, [
+            "config.json",
+            "model-00001-of-00002.safetensors",
+            "model-00002-of-00002.safetensors",
+            "model.safetensors.index.json",
+        ])
+    }
+
+    func testParseRepoFileListingIgnoresEntriesWithoutFilenames() throws {
+        let payload = Data("""
+        {"siblings":[{"rfilename":"config.json"},{"size":42}]}
+        """.utf8)
+
+        XCTAssertEqual(
+            try HuggingFaceDownloader.parseRepoFileListing(payload, modelId: "org/model"),
+            ["config.json"])
+    }
+
+    func testParseRepoFileListingRejectsMalformedPayload() {
+        XCTAssertThrowsError(
+            try HuggingFaceDownloader.parseRepoFileListing(Data("not json".utf8), modelId: "org/model"))
+    }
+
     // MARK: - Download stall guard
 
     /// A stalled operation (reports progress once, then sleeps forever)
