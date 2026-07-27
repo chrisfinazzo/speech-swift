@@ -9,9 +9,11 @@ import XCTest
 /// sharded MLX with an index, CoreML `.mlmodelc` directories, mixed bundles —
 /// and lets the engine's own size and SHA-256 checks judge the result.
 ///
-/// It downloads into the shared cache rather than a temporary directory, so a
-/// run also warms models for the suites that currently skip themselves with
-/// "model not cached".
+/// By default it downloads into the shared cache, so a run also warms models
+/// for the suites that skip themselves with "model not cached". In ephemeral
+/// mode it fetches to a temporary directory and deletes each bundle once
+/// checked, so peak disk is a single model — which is how the full ~90 GB set
+/// can be validated on a volume with a few gigabytes free.
 ///
 /// Opt-in, because a full sweep is ~90 GB:
 ///
@@ -21,12 +23,22 @@ import XCTest
 ///   `MODEL_DOWNLOAD_SWEEP_MAX_GB`  per-model size ceiling (default 2)
 ///   `MODEL_DOWNLOAD_SWEEP_FILTER`  substring match on the model id
 ///   `MODEL_DOWNLOAD_SWEEP_LIMIT`   stop after N models
+///   `MODEL_DOWNLOAD_SWEEP_EPHEMERAL` fetch to a temp dir and delete each bundle
+///                                    once checked, so peak disk is one model
+///   `MODEL_DOWNLOAD_SWEEP_ONLY_UNCACHED` skip models already in the cache
 final class E2EModelDownloadSweepTests: XCTestCase {
+
+    /// Free space kept in reserve so a sweep never fills the volume. macOS
+    /// degrades badly near zero, and an unchecked model is a much cheaper
+    /// outcome than an unusable machine.
+    private let reservedHeadroomBytes: Int64 = 3_000_000_000
 
     private struct Settings {
         let maxBytes: Int64
         let filter: String?
         let limit: Int?
+        let ephemeral: Bool
+        let onlyUncached: Bool
     }
 
     private func settings() throws -> Settings {
@@ -40,7 +52,15 @@ final class E2EModelDownloadSweepTests: XCTestCase {
         return Settings(
             maxBytes: Int64(maxGB * 1_000_000_000),
             filter: env["MODEL_DOWNLOAD_SWEEP_FILTER"],
-            limit: env["MODEL_DOWNLOAD_SWEEP_LIMIT"].flatMap(Int.init))
+            limit: env["MODEL_DOWNLOAD_SWEEP_LIMIT"].flatMap(Int.init),
+            ephemeral: env["MODEL_DOWNLOAD_SWEEP_EPHEMERAL"] == "1",
+            onlyUncached: env["MODEL_DOWNLOAD_SWEEP_ONLY_UNCACHED"] == "1")
+    }
+
+    /// Free bytes on the volume backing `url`, or `nil` if unknown.
+    private func availableBytes(at url: URL) -> Int64? {
+        (try? url.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey]))?
+            .volumeAvailableCapacityForImportantUsage
     }
 
     /// Fetch each repository in full and confirm every file lands intact.
@@ -80,15 +100,43 @@ final class E2EModelDownloadSweepTests: XCTestCase {
                 continue
             }
 
-            attempted += 1
             let directory: URL
             do {
-                directory = try HuggingFaceDownloader.getCacheDirectory(for: modelId)
+                directory = settings.ephemeral
+                    ? FileManager.default.temporaryDirectory
+                        .appendingPathComponent("sweep-\(UUID().uuidString)", isDirectory: true)
+                    : try HuggingFaceDownloader.getCacheDirectory(for: modelId)
             } catch {
                 failures.append("\(modelId): cache directory — \(error.localizedDescription)")
                 continue
             }
+            // In ephemeral mode each bundle is deleted as soon as it is
+            // checked, so peak usage is one model rather than the whole set —
+            // that is what makes validating ~90 GB of bundles possible on a
+            // disk with a few gigabytes free.
+            defer {
+                if settings.ephemeral { try? FileManager.default.removeItem(at: directory) }
+            }
 
+            // Consult the real cache even when fetching to a temp directory,
+            // otherwise an ephemeral run re-downloads everything already held.
+            if settings.onlyUncached,
+               let cached = try? HuggingFaceDownloader.getCacheDirectory(for: modelId),
+               HuggingFaceDownloader.weightsExist(in: cached) {
+                continue
+            }
+
+            // Refuse to start a transfer that cannot fit. Filling the disk is a
+            // far worse outcome than an unchecked model.
+            if let free = availableBytes(at: FileManager.default.temporaryDirectory),
+               free < total + reservedHeadroomBytes {
+                skippedTooLarge.append(String(
+                    format: "%@ (%.2f GB — only %.2f GB free)",
+                    modelId, Double(total) / 1e9, Double(free) / 1e9))
+                continue
+            }
+
+            attempted += 1
             do {
                 try await HuggingFaceDownloader.downloadFiles(
                     modelId: modelId, to: directory, files: ["*"])
