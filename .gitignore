@@ -58,3 +58,4 @@ benchmark-results/
 .DS_Store
 .claude/scheduled_tasks.lock
 .idea/
+.e2e-logs/
