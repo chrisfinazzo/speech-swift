@@ -1,0 +1,31 @@
+Test Suite 'Selected tests' started at 2026-07-27 09:11:11.207.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 09:11:11.212.
+Test Suite 'E2EInstructTokenTests' started at 2026-07-27 09:11:11.212.
+Test Case '-[Qwen3TTSTests.E2EInstructTokenTests testDifferentInstructsProduceDifferentTokens]' started.
+Loaded 33 added tokens from tokenizer_config.json
+Loaded tokenizer with 151676 tokens, 151291 merges
+Loaded 976 weights from safetensors
+Found 714 talker weights
+Applied weights to Talker (28 layers)
+Found 186 code predictor weights
+Applied weights to Code Predictor (5 layers)
+Found 76 speaker encoder weights
+Applied weights to Speaker Encoder
+Found 496 speech tokenizer weights total
+Applied weights to Speech Tokenizer Decoder
+Test Case '-[Qwen3TTSTests.E2EInstructTokenTests testDifferentInstructsProduceDifferentTokens]' passed (117.492 seconds).
+Test Case '-[Qwen3TTSTests.E2EInstructTokenTests testEmptyInstructText]' started.
+Test Case '-[Qwen3TTSTests.E2EInstructTokenTests testEmptyInstructText]' passed (0.000 seconds).
+Test Case '-[Qwen3TTSTests.E2EInstructTokenTests testInstructTokenFormat]' started.
+Test Case '-[Qwen3TTSTests.E2EInstructTokenTests testInstructTokenFormat]' passed (0.000 seconds).
+Test Suite 'E2EInstructTokenTests' passed at 2026-07-27 09:13:08.705.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 117.492 (117.492) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 09:13:08.705.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 117.492 (117.492) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 09:13:08.705.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 117.492 (117.498) seconds
+Instruct tokens for 'Speak cheerfully': [151644, 872, 198, 95845, 25032, 3641, 151645, 198] (8 tokens)
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

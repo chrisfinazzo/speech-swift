@@ -1,0 +1,23 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:38:26.196.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:38:26.200.
+Test Suite 'E2ENemotronLangTagLeakTests' started at 2026-07-27 08:38:26.200.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronLangTagLeakTests testNoLanguageTagInOutput]' started.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronLangTagLeakTests testNoLanguageTagInOutput]' passed (4.775 seconds).
+Test Case '-[NemotronStreamingASRTests.E2ENemotronLangTagLeakTests testStreamingPreservesContentVsBatch]' started.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronLangTagLeakTests testStreamingPreservesContentVsBatch]' passed (15.247 seconds).
+Test Case '-[NemotronStreamingASRTests.E2ENemotronLangTagLeakTests testStreamingWordTimingsAreMonotonicAndBounded]' started.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronLangTagLeakTests testStreamingWordTimingsAreMonotonicAndBounded]' passed (1.443 seconds).
+Test Suite 'E2ENemotronLangTagLeakTests' passed at 2026-07-27 08:38:47.666.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 21.466 (21.466) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:38:47.666.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 21.466 (21.466) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:38:47.666.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 21.466 (21.471) seconds
+Nemotron en-US raw transcript: "Can you guarantee that the replacement part will be shipped tomorrow"
+Output rank has increased after reshaping espresso network for blob = encoder_hidden_states_classic_cpu and upper dims are not 1 @ ReshapeOperationInternalOutput rank has increased after reshaping espresso network for blob = encoder_hidden_states_classic_cpu and upper dims are not 1 @ ReshapeOperationInternalNemotron batch: "The quick brown fox jumps over the lazy dog by the riverbank"
+Nemotron stream: "The quick brown fox jumps over the lazy dog by the riverbank"
+word-set Jaccard(batch, stream) = 1.0
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

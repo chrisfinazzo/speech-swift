@@ -1,0 +1,42 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:03:56.994.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:03:57.000.
+Test Suite 'E2ECosyVoiceTokenizerTests' started at 2026-07-27 08:03:57.000.
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTokenizerTests testTokenizerEncodesChinese]' started.
+Loaded 3 added tokens from tokenizer_config.json
+Loaded tokenizer with 151646 tokens, 134839 merges
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTokenizerTests testTokenizerEncodesChinese]' passed (0.522 seconds).
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTokenizerTests testTokenizerEncodesEnglish]' started.
+Loaded 3 added tokens from tokenizer_config.json
+Loaded tokenizer with 151646 tokens, 134839 merges
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTokenizerTests testTokenizerEncodesEnglish]' passed (0.463 seconds).
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTokenizerTests testTokenizerEncodesGerman]' started.
+Loaded 3 added tokens from tokenizer_config.json
+Loaded tokenizer with 151646 tokens, 134839 merges
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTokenizerTests testTokenizerEncodesGerman]' passed (0.470 seconds).
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTokenizerTests testTokenizerLoads]' started.
+Loaded 3 added tokens from tokenizer_config.json
+Loaded tokenizer with 151646 tokens, 134839 merges
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTokenizerTests testTokenizerLoads]' passed (0.473 seconds).
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTokenizerTests testTokenizerRoundTrip]' started.
+Loaded 3 added tokens from tokenizer_config.json
+Loaded tokenizer with 151646 tokens, 134839 merges
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTokenizerTests testTokenizerRoundTrip]' passed (0.428 seconds).
+Test Suite 'E2ECosyVoiceTokenizerTests' passed at 2026-07-27 08:03:59.357.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 2.356 (2.357) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:03:59.357.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 2.356 (2.357) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:03:59.357.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 2.356 (2.363) seconds
+'你好世界' -> [56568, 52801, 99244, 97120] (4 tokens)
+'Hello, how are you?' -> [9707, 11, 1246, 525, 498, 30] (6 tokens)
+'Guten Tag, wie geht es Ihnen?' -> [38, 13160, 12353, 11, 13368, 39264, 1531, 43860, 30] (9 tokens)
+'Hello' -> [9707]
+'Hello world' -> 2 tokens -> 'Hello world'
+'The quick brown fox jumps over the lazy dog.' -> 10 tokens -> 'The quick brown fox jumps over the lazy dog.'
+'你好世界' -> 4 tokens -> '你好世界'
+'Guten Tag!' -> 4 tokens -> 'Guten Tag!'
+'こんにちは世界' -> 3 tokens -> 'こんにちは世界'
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

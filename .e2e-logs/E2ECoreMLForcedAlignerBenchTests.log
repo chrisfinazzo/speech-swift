@@ -1,0 +1,16 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:48:55.889.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:48:55.895.
+Test Suite 'E2ECoreMLForcedAlignerBenchTests' started at 2026-07-27 08:48:55.895.
+Test Case '-[Qwen3ASRTests.E2ECoreMLForcedAlignerBenchTests testBenchmarkLocalAligner]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/Qwen3ASRTests/E2ECoreMLForcedAlignerBenchTests.swift:33: -[Qwen3ASRTests.E2ECoreMLForcedAlignerBenchTests testBenchmarkLocalAligner] : Test skipped - Set ALIGNER_COREML_LOCAL_DIR to a converter output directory
+Test Case '-[Qwen3ASRTests.E2ECoreMLForcedAlignerBenchTests testBenchmarkLocalAligner]' skipped (0.001 seconds).
+Test Suite 'E2ECoreMLForcedAlignerBenchTests' passed at 2026-07-27 08:48:55.897.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:48:55.897.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:48:55.897.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.007) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

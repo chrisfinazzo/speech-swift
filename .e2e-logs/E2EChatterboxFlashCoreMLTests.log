@@ -1,0 +1,31 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:02:21.639.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:02:21.645.
+Test Suite 'E2EChatterboxFlashCoreMLTests' started at 2026-07-27 08:02:21.645.
+Test Case '-[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testAudioBackHalfSmoke]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/ChatterboxTTSTests/E2EChatterboxFlashCoreMLTests.swift:161: -[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testAudioBackHalfSmoke] : Test skipped - Set CHATTERBOX_FLASH_COREML_PATH to a Chatterbox Flash Core ML export bundle
+Test Case '-[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testAudioBackHalfSmoke]' skipped (0.002 seconds).
+Test Case '-[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testBundleLoadsAllGraphs]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/ChatterboxTTSTests/E2EChatterboxFlashCoreMLTests.swift:161: -[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testBundleLoadsAllGraphs] : Test skipped - Set CHATTERBOX_FLASH_COREML_PATH to a Chatterbox Flash Core ML export bundle
+Test Case '-[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testBundleLoadsAllGraphs]' skipped (0.000 seconds).
+Test Case '-[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testExportedTokenizerMatchesReferenceIds]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/ChatterboxTTSTests/E2EChatterboxFlashCoreMLTests.swift:161: -[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testExportedTokenizerMatchesReferenceIds] : Test skipped - Set CHATTERBOX_FLASH_COREML_PATH to a Chatterbox Flash Core ML export bundle
+Test Case '-[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testExportedTokenizerMatchesReferenceIds]' skipped (0.000 seconds).
+Test Case '-[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testReferenceCloneThroughFlashCoreML]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/ChatterboxTTSTests/E2EChatterboxFlashCoreMLTests.swift:114: -[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testReferenceCloneThroughFlashCoreML] : Test skipped - missing /tmp/cbx-fp16/model.safetensors; set CHATTERBOX_MLX_PATH and CHATTERBOX_REFERENCE_WAV
+Test Case '-[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testReferenceCloneThroughFlashCoreML]' skipped (0.000 seconds).
+Test Case '-[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testT3SpeechTokenSmoke]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/ChatterboxTTSTests/E2EChatterboxFlashCoreMLTests.swift:161: -[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testT3SpeechTokenSmoke] : Test skipped - Set CHATTERBOX_FLASH_COREML_PATH to a Chatterbox Flash Core ML export bundle
+Test Case '-[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testT3SpeechTokenSmoke]' skipped (0.000 seconds).
+Test Case '-[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testT3SpeechTokenSmokeWithCFGWhenNullPrefillExists]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/ChatterboxTTSTests/E2EChatterboxFlashCoreMLTests.swift:161: -[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testT3SpeechTokenSmokeWithCFGWhenNullPrefillExists] : Test skipped - Set CHATTERBOX_FLASH_COREML_PATH to a Chatterbox Flash Core ML export bundle
+Test Case '-[ChatterboxTTSTests.E2EChatterboxFlashCoreMLTests testT3SpeechTokenSmokeWithCFGWhenNullPrefillExists]' skipped (0.000 seconds).
+Test Suite 'E2EChatterboxFlashCoreMLTests' passed at 2026-07-27 08:02:21.648.
+	 Executed 6 tests, with 6 tests skipped and 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:02:21.648.
+	 Executed 6 tests, with 6 tests skipped and 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:02:21.648.
+	 Executed 6 tests, with 6 tests skipped and 0 failures (0 unexpected) in 0.003 (0.010) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

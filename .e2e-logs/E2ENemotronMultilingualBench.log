@@ -1,0 +1,16 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:38:49.161.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:38:49.166.
+Test Suite 'E2ENemotronMultilingualBench' started at 2026-07-27 08:38:49.166.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronMultilingualBench testBenchAllLanguages]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/NemotronStreamingASRTests/MultilingualBenchTests.swift:33: -[NemotronStreamingASRTests.E2ENemotronMultilingualBench testBenchAllLanguages] : Test skipped - Local bundle not found at /tmp/Nemotron-3.5-CoreML-320ms
+Test Case '-[NemotronStreamingASRTests.E2ENemotronMultilingualBench testBenchAllLanguages]' skipped (0.003 seconds).
+Test Suite 'E2ENemotronMultilingualBench' passed at 2026-07-27 08:38:49.169.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:38:49.169.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:38:49.169.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.003 (0.008) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

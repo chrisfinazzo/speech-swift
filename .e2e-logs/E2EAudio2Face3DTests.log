@@ -1,0 +1,19 @@
+Test Suite 'Selected tests' started at 2026-07-27 07:43:10.492.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 07:43:10.498.
+Test Suite 'E2EAudio2Face3DTests' started at 2026-07-27 07:43:10.498.
+Test Case '-[Audio2Face3DTests.E2EAudio2Face3DTests testFromPretrainedClaireGeneratesFrames]' started.
+Test Case '-[Audio2Face3DTests.E2EAudio2Face3DTests testFromPretrainedClaireGeneratesFrames]' passed (18.439 seconds).
+Test Case '-[Audio2Face3DTests.E2EAudio2Face3DTests testFromPretrainedJamesGeneratesFrames]' started.
+Test Case '-[Audio2Face3DTests.E2EAudio2Face3DTests testFromPretrainedJamesGeneratesFrames]' passed (20.448 seconds).
+Test Case '-[Audio2Face3DTests.E2EAudio2Face3DTests testFromPretrainedMarkGeneratesFrames]' started.
+Test Case '-[Audio2Face3DTests.E2EAudio2Face3DTests testFromPretrainedMarkGeneratesFrames]' passed (11.975 seconds).
+Test Suite 'E2EAudio2Face3DTests' passed at 2026-07-27 07:44:01.361.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 50.862 (50.862) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 07:44:01.361.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 50.862 (50.862) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 07:44:01.361.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 50.862 (50.869) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

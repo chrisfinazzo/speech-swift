@@ -1,0 +1,46 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:09:35.469.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:09:35.474.
+Test Suite 'E2EKokoroTests' started at 2026-07-27 08:09:35.474.
+Test Case '-[KokoroTTSTests.E2EKokoroTests testChineseRoundTrip]' started.
+Loaded 62 added tokens from tokenizer_config.json
+Loaded tokenizer with 151705 tokens, 151291 merges
+Test Case '-[KokoroTTSTests.E2EKokoroTests testChineseRoundTrip]' passed (17.878 seconds).
+Test Case '-[KokoroTTSTests.E2EKokoroTests testJapaneseRoundTrip]' started.
+Test Case '-[KokoroTTSTests.E2EKokoroTests testJapaneseRoundTrip]' passed (0.169 seconds).
+Test Case '-[KokoroTTSTests.E2EKokoroTests testModelLoadsAndHasE2E]' started.
+Test Case '-[KokoroTTSTests.E2EKokoroTests testModelLoadsAndHasE2E]' passed (0.001 seconds).
+Test Case '-[KokoroTTSTests.E2EKokoroTests testPhonemizerTokenizes]' started.
+Test Case '-[KokoroTTSTests.E2EKokoroTests testPhonemizerTokenizes]' passed (0.130 seconds).
+Test Case '-[KokoroTTSTests.E2EKokoroTests testSynthesizeEnglish]' started.
+Test Case '-[KokoroTTSTests.E2EKokoroTests testSynthesizeEnglish]' passed (0.101 seconds).
+Test Case '-[KokoroTTSTests.E2EKokoroTests testSynthesizeShortText]' started.
+Test Case '-[KokoroTTSTests.E2EKokoroTests testSynthesizeShortText]' passed (0.087 seconds).
+Test Suite 'E2EKokoroTests' passed at 2026-07-27 08:09:53.840.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 18.366 (18.366) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:09:53.840.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 18.366 (18.366) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:09:53.840.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 18.366 (18.371) seconds
+Output rank has increased after reshaping espresso network for blob = encoder_hidden_states_classic_cpu and upper dims are not 1 @ ReshapeOperationInternalOutput rank has increased after reshaping espresso network for blob = encoder_hidden_states_classic_cpu and upper dims are not 1 @ ReshapeOperationInternal[ASR 0%] Downloading model...
+[ASR 80%] Downloading weights...
+[ASR 80%] Loading tokenizer...
+[ASR 85%] Loading audio encoder weights...
+Found 1 safetensor files
+Loading: model.safetensors
+Applied weights to audio encoder (18 layers, 301 tensors)
+[ASR 92%] Loading text decoder weights...
+Applied weights to text decoder (28 layers, 704 tensors)
+[ASR 100%] Ready
+Chinese TTS: 63000 samples (2.62s)
+Input:  "你好世界，这是一个测试。"
+Output: "你好，世界。这是一个测试。"
+Matched 10/10 characters: 一世个你好是测界试这
+Japanese TTS: 39000 samples (1.62s)
+Input:  "こんにちは世界。"
+Output: "こんにちは世界。"
+Matched 2/2 phrases: ["こんにちは", "世界"]
+English: 73800 samples (3.08s)
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

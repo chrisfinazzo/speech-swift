@@ -1,0 +1,25 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:55:14.884.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:55:14.889.
+Test Suite 'E2EQwen3ASRLargeHangTests' started at 2026-07-27 08:55:14.889.
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRLargeHangTests testLargeModelDoesNotHangOnFirstToken]' started.
+Loaded 62 added tokens from tokenizer_config.json
+Loaded tokenizer with 151705 tokens, 151291 merges
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRLargeHangTests testLargeModelDoesNotHangOnFirstToken]' passed (2.795 seconds).
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRLargeHangTests testLargeModelDoesNotHangOnShortAudio]' started.
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRLargeHangTests testLargeModelDoesNotHangOnShortAudio]' passed (0.540 seconds).
+Test Suite 'E2EQwen3ASRLargeHangTests' passed at 2026-07-27 08:55:18.224.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 3.335 (3.335) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:55:18.224.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 3.335 (3.335) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:55:18.224.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 3.335 (3.340) seconds
+Found 1 safetensor files
+Loading: model.safetensors
+Applied weights to audio encoder (24 layers, 397 tensors)
+Applied weights to text decoder (28 layers, 704 tensors)
+1.7B [maxTokens=32] completed in 0.5272519588470459s: "Can you guarantee that the replacement part will be shipped tomorrow?"
+1.7B [full-horizon] completed in 0.501526951789856s: "Can you guarantee that the replacement part will be shipped tomorrow?"
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

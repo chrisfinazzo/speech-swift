@@ -1,0 +1,31 @@
+Test Suite 'Selected tests' started at 2026-07-27 09:25:09.225.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 09:25:09.231.
+Test Suite 'E2EWeSpeakerBenchmarkTests' started at 2026-07-27 09:25:09.231.
+Test Case '-[SpeechVADTests.E2EWeSpeakerBenchmarkTests testMLXvsCoreMLLatency]' started.
+Test Case '-[SpeechVADTests.E2EWeSpeakerBenchmarkTests testMLXvsCoreMLLatency]' passed (10.552 seconds).
+Test Suite 'E2EWeSpeakerBenchmarkTests' passed at 2026-07-27 09:25:19.783.
+	 Executed 1 test, with 0 failures (0 unexpected) in 10.552 (10.552) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 09:25:19.783.
+	 Executed 1 test, with 0 failures (0 unexpected) in 10.552 (10.552) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 09:25:19.783.
+	 Executed 1 test, with 0 failures (0 unexpected) in 10.552 (10.558) seconds
+E5RT encountered an STL exception. msg = tensor_buffer has known strides while the model has FlexibleShapeInfo. Strides must be unknown on all dimensions..
+=== WeSpeaker Embedding Latency Benchmark ===
+Audio: 20.0s, 5 iterations
+
+MLX:
+  Per call: 204.8ms
+  RTF:      0.0102
+
+CoreML:
+  Per call: 229.7ms
+  RTF:      0.0115
+
+MLX is 1.1x faster
+
+Cross-backend cosine similarity: 0.998603
+(Not expected to be high — NHWC vs NCHW feature ordering differs)
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

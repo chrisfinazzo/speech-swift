@@ -1,0 +1,24 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:41:57.052.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:41:57.057.
+Test Suite 'E2EOmnilingualMLXQualityTests' started at 2026-07-27 08:41:57.057.
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXQualityTests testMLXAgreesWithCoreMLOnTwentySeconds]' started.
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXQualityTests testMLXAgreesWithCoreMLOnTwentySeconds]' passed (4.635 seconds).
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXQualityTests testMLXMatchesGroundTruthOnFirstTenSeconds]' started.
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXQualityTests testMLXMatchesGroundTruthOnFirstTenSeconds]' passed (0.730 seconds).
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXQualityTests testMLXMatchesGroundTruthOnTwentySeconds]' started.
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXQualityTests testMLXMatchesGroundTruthOnTwentySeconds]' passed (0.749 seconds).
+Test Suite 'E2EOmnilingualMLXQualityTests' passed at 2026-07-27 08:42:03.172.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 6.114 (6.114) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:42:03.172.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 6.114 (6.114) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:42:03.172.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 6.114 (6.119) seconds
+CoreML 300M: "can you guarantee that the replacement part will be shipped tomorrow"
+MLX    300M: "can you guarantee that the replacement part will be shiped tomorrow"
+Jaccard(CoreML, MLX) = 0.8333333333333334
+Omnilingual MLX 300M-4bit (first 10 s): "can you guarantee that the replacement part will be shipped tomorrow"
+Omnilingual MLX 300M-4bit (20 s clip): "can you guarantee that the replacement part will be shiped tomorrow"
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

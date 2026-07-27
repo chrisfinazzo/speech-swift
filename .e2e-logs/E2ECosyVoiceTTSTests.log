@@ -1,0 +1,68 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:02:27.115.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:02:27.120.
+Test Suite 'E2ECosyVoiceTTSTests' started at 2026-07-27 08:02:27.120.
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTTSTests testBasicSynthesis]' started.
+Loaded 3 added tokens from tokenizer_config.json
+Loaded tokenizer with 151646 tokens, 134839 merges
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTTSTests testBasicSynthesis]' passed (1.259 seconds).
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTTSTests testChineseSynthesis]' started.
+Loaded 3 added tokens from tokenizer_config.json
+Loaded tokenizer with 151646 tokens, 134839 merges
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTTSTests testChineseSynthesis]' passed (1.173 seconds).
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTTSTests testEmptyTextHandling]' started.
+Loaded 3 added tokens from tokenizer_config.json
+Loaded tokenizer with 151646 tokens, 134839 merges
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTTSTests testEmptyTextHandling]' passed (1.010 seconds).
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTTSTests testGermanSynthesis]' started.
+Loaded 3 added tokens from tokenizer_config.json
+Loaded tokenizer with 151646 tokens, 134839 merges
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTTSTests testGermanSynthesis]' passed (1.332 seconds).
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTTSTests testMaxLengthSafety]' started.
+Loaded 3 added tokens from tokenizer_config.json
+Loaded tokenizer with 151646 tokens, 134839 merges
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTTSTests testMaxLengthSafety]' passed (28.956 seconds).
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTTSTests testSpeakerEmbeddingProbe]' started.
+Loaded 3 added tokens from tokenizer_config.json
+Loaded tokenizer with 151646 tokens, 134839 merges
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTTSTests testSpeakerEmbeddingProbe]' passed (1.421 seconds).
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTTSTests testStreamingSynthesis]' started.
+Loaded 3 added tokens from tokenizer_config.json
+Loaded tokenizer with 151646 tokens, 134839 merges
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTTSTests testStreamingSynthesis]' passed (1.239 seconds).
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTTSTests testVoiceCloningSynthesis]' started.
+Loaded 3 added tokens from tokenizer_config.json
+Loaded tokenizer with 151646 tokens, 134839 merges
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceTTSTests testVoiceCloningSynthesis]' passed (52.447 seconds).
+Test Suite 'E2ECosyVoiceTTSTests' passed at 2026-07-27 08:03:55.957.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 88.837 (88.837) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:03:55.957.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 88.837 (88.837) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:03:55.957.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 88.837 (88.842) seconds
+  Bundle: unquantised (bf16) — LLM + DiT stay in plain Linear form
+  Fixed flow noise: flow_noise.bin [1, 80, 15000]
+  Bundle: unquantised (bf16) — LLM + DiT stay in plain Linear form
+  Fixed flow noise: flow_noise.bin [1, 80, 15000]
+  Bundle: unquantised (bf16) — LLM + DiT stay in plain Linear form
+  Fixed flow noise: flow_noise.bin [1, 80, 15000]
+  Bundle: unquantised (bf16) — LLM + DiT stay in plain Linear form
+  Fixed flow noise: flow_noise.bin [1, 80, 15000]
+  Bundle: unquantised (bf16) — LLM + DiT stay in plain Linear form
+  Fixed flow noise: flow_noise.bin [1, 80, 15000]
+  Bundle: unquantised (bf16) — LLM + DiT stay in plain Linear form
+  Fixed flow noise: flow_noise.bin [1, 80, 15000]
+=== Speaker Embedding Probe ===
+Mel magnitude (baseline):      3.2322
+Diff (nil vs random spk):      0.9776
+Diff (random1 vs random2):     0.9683
+Relative diff (nil vs spk):    30.25%
+Relative diff (spk1 vs spk2):  29.96%
+Speaker conditioning appears ACTIVE
+  Bundle: unquantised (bf16) — LLM + DiT stay in plain Linear form
+  Fixed flow noise: flow_noise.bin [1, 80, 15000]
+  Bundle: unquantised (bf16) — LLM + DiT stay in plain Linear form
+  Fixed flow noise: flow_noise.bin [1, 80, 15000]
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

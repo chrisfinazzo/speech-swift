@@ -1,0 +1,22 @@
+Test Suite 'Selected tests' started at 2026-07-27 09:24:35.420.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 09:24:35.425.
+Test Suite 'E2ESpeechRestorationTests' started at 2026-07-27 09:24:35.425.
+Test Case '-[SpeechRestorationTests.E2ESpeechRestorationTests testChunkedRestorePreservesLength]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/SpeechRestorationTests/E2ESpeechRestorationTests.swift:127: -[SpeechRestorationTests.E2ESpeechRestorationTests testChunkedRestorePreservesLength] : Test skipped - Sidon fp16 CoreML artifacts not present
+Test Case '-[SpeechRestorationTests.E2ESpeechRestorationTests testChunkedRestorePreservesLength]' skipped (0.003 seconds).
+Test Case '-[SpeechRestorationTests.E2ESpeechRestorationTests testRestoreReferenceClip]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/SpeechRestorationTests/E2ESpeechRestorationTests.swift:63: -[SpeechRestorationTests.E2ESpeechRestorationTests testRestoreReferenceClip] : Test skipped - Sidon fp16 CoreML artifacts not present
+Test Case '-[SpeechRestorationTests.E2ESpeechRestorationTests testRestoreReferenceClip]' skipped (0.000 seconds).
+Test Case '-[SpeechRestorationTests.E2ESpeechRestorationTests testRestoreReferenceClipInt8]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/SpeechRestorationTests/E2ESpeechRestorationTests.swift:63: -[SpeechRestorationTests.E2ESpeechRestorationTests testRestoreReferenceClipInt8] : Test skipped - Sidon int8 CoreML artifacts not present
+Test Case '-[SpeechRestorationTests.E2ESpeechRestorationTests testRestoreReferenceClipInt8]' skipped (0.000 seconds).
+Test Suite 'E2ESpeechRestorationTests' passed at 2026-07-27 09:24:35.428.
+	 Executed 3 tests, with 3 tests skipped and 0 failures (0 unexpected) in 0.003 (0.004) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 09:24:35.428.
+	 Executed 3 tests, with 3 tests skipped and 0 failures (0 unexpected) in 0.003 (0.004) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 09:24:35.428.
+	 Executed 3 tests, with 3 tests skipped and 0 failures (0 unexpected) in 0.003 (0.008) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

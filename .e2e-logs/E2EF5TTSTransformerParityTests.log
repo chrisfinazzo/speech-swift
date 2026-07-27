@@ -1,0 +1,16 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:04:02.708.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:04:02.713.
+Test Suite 'E2EF5TTSTransformerParityTests' started at 2026-07-27 08:04:02.713.
+Test Case '-[F5TTSTests.E2EF5TTSTransformerParityTests testFixedInputVelocityDump]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/F5TTSTests/E2EF5TTSTransformerParityTests.swift:11: -[F5TTSTests.E2EF5TTSTransformerParityTests testFixedInputVelocityDump] : Test skipped - Set F5TTS_E2E_BUNDLE to run F5-TTS transformer parity
+Test Case '-[F5TTSTests.E2EF5TTSTransformerParityTests testFixedInputVelocityDump]' skipped (0.001 seconds).
+Test Suite 'E2EF5TTSTransformerParityTests' passed at 2026-07-27 08:04:02.714.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:04:02.714.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:04:02.714.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.006) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

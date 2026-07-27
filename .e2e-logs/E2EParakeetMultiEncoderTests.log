@@ -1,0 +1,25 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:42:38.883.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:42:38.887.
+Test Suite 'E2EParakeetMultiEncoderTests' started at 2026-07-27 08:42:38.887.
+Test Case '-[ParakeetASRTests.E2EParakeetMultiEncoderTests test15sEncoderVariantIsSingleShape1500]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/ParakeetASRTests/E2EParakeetMultiEncoderTests.swift:44: -[ParakeetASRTests.E2EParakeetMultiEncoderTests test15sEncoderVariantIsSingleShape1500] : Test skipped - Multi-encoder layout not staged at /Users/ivan/Library/Caches/qwen3-speech/models/aufklarer/Parakeet-TDT-v3-CoreML-INT8 — stage encoder_5s.mlmodelc + encoder_15s.mlmodelc locally, or wait until the iOS18 build is uploaded to HF.
+Test Case '-[ParakeetASRTests.E2EParakeetMultiEncoderTests test15sEncoderVariantIsSingleShape1500]' skipped (0.003 seconds).
+Test Case '-[ParakeetASRTests.E2EParakeetMultiEncoderTests test5sEncoderVariantIsSingleShape500]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/ParakeetASRTests/E2EParakeetMultiEncoderTests.swift:44: -[ParakeetASRTests.E2EParakeetMultiEncoderTests test5sEncoderVariantIsSingleShape500] : Test skipped - Multi-encoder layout not staged at /Users/ivan/Library/Caches/qwen3-speech/models/aufklarer/Parakeet-TDT-v3-CoreML-INT8 — stage encoder_5s.mlmodelc + encoder_15s.mlmodelc locally, or wait until the iOS18 build is uploaded to HF.
+Test Case '-[ParakeetASRTests.E2EParakeetMultiEncoderTests test5sEncoderVariantIsSingleShape500]' skipped (0.000 seconds).
+Test Case '-[ParakeetASRTests.E2EParakeetMultiEncoderTests test5sVariantTranscribesShortClip]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/ParakeetASRTests/E2EParakeetMultiEncoderTests.swift:44: -[ParakeetASRTests.E2EParakeetMultiEncoderTests test5sVariantTranscribesShortClip] : Test skipped - Multi-encoder layout not staged at /Users/ivan/Library/Caches/qwen3-speech/models/aufklarer/Parakeet-TDT-v3-CoreML-INT8 — stage encoder_5s.mlmodelc + encoder_15s.mlmodelc locally, or wait until the iOS18 build is uploaded to HF.
+Test Case '-[ParakeetASRTests.E2EParakeetMultiEncoderTests test5sVariantTranscribesShortClip]' skipped (0.000 seconds).
+Test Case '-[ParakeetASRTests.E2EParakeetMultiEncoderTests testDefaultEncoderIsSingleShape3000]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/ParakeetASRTests/E2EParakeetMultiEncoderTests.swift:44: -[ParakeetASRTests.E2EParakeetMultiEncoderTests testDefaultEncoderIsSingleShape3000] : Test skipped - Multi-encoder layout not staged at /Users/ivan/Library/Caches/qwen3-speech/models/aufklarer/Parakeet-TDT-v3-CoreML-INT8 — stage encoder_5s.mlmodelc + encoder_15s.mlmodelc locally, or wait until the iOS18 build is uploaded to HF.
+Test Case '-[ParakeetASRTests.E2EParakeetMultiEncoderTests testDefaultEncoderIsSingleShape3000]' skipped (0.000 seconds).
+Test Suite 'E2EParakeetMultiEncoderTests' passed at 2026-07-27 08:42:38.891.
+	 Executed 4 tests, with 4 tests skipped and 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:42:38.891.
+	 Executed 4 tests, with 4 tests skipped and 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:42:38.891.
+	 Executed 4 tests, with 4 tests skipped and 0 failures (0 unexpected) in 0.004 (0.009) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

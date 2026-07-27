@@ -1,0 +1,37 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:05:31.727.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:05:31.732.
+Test Suite 'E2EHibikiTranslateTests' started at 2026-07-27 08:05:31.732.
+Test Case '-[HibikiTranslateTests.E2EHibikiTranslateTests testClosedLoopTTSToHibikiToASR]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/HibikiTranslateTests/E2EHibikiTranslateTests.swift:301: -[HibikiTranslateTests.E2EHibikiTranslateTests testClosedLoopTTSToHibikiToASR] : Test skipped - Set HIBIKI_E2E=1 to run closed-loop TTS↔Hibiki↔ASR round trip
+Test Case '-[HibikiTranslateTests.E2EHibikiTranslateTests testClosedLoopTTSToHibikiToASR]' skipped (0.003 seconds).
+Test Case '-[HibikiTranslateTests.E2EHibikiTranslateTests testEnglishLoopThroughFrench]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/HibikiTranslateTests/E2EHibikiTranslateTests.swift:461: -[HibikiTranslateTests.E2EHibikiTranslateTests testEnglishLoopThroughFrench] : Test skipped - Set HIBIKI_E2E=1 to run English↔English loop test
+Test Case '-[HibikiTranslateTests.E2EHibikiTranslateTests testEnglishLoopThroughFrench]' skipped (0.000 seconds).
+Test Case '-[HibikiTranslateTests.E2EHibikiTranslateTests testFrenchToEnglishTranslation]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/HibikiTranslateTests/E2EHibikiTranslateTests.swift:202: -[HibikiTranslateTests.E2EHibikiTranslateTests testFrenchToEnglishTranslation] : Test skipped - Set HIBIKI_E2E=1 to run Hibiki E2E translation
+Test Case '-[HibikiTranslateTests.E2EHibikiTranslateTests testFrenchToEnglishTranslation]' skipped (0.001 seconds).
+Test Case '-[HibikiTranslateTests.E2EHibikiTranslateTests testGermanToEnglishTranslation]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/HibikiTranslateTests/E2EHibikiTranslateTests.swift:202: -[HibikiTranslateTests.E2EHibikiTranslateTests testGermanToEnglishTranslation] : Test skipped - Set HIBIKI_E2E=1 to run Hibiki E2E translation
+Test Case '-[HibikiTranslateTests.E2EHibikiTranslateTests testGermanToEnglishTranslation]' skipped (0.000 seconds).
+Test Case '-[HibikiTranslateTests.E2EHibikiTranslateTests testPortugueseToEnglishTranslation]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/HibikiTranslateTests/E2EHibikiTranslateTests.swift:202: -[HibikiTranslateTests.E2EHibikiTranslateTests testPortugueseToEnglishTranslation] : Test skipped - Set HIBIKI_E2E=1 to run Hibiki E2E translation
+Test Case '-[HibikiTranslateTests.E2EHibikiTranslateTests testPortugueseToEnglishTranslation]' skipped (0.000 seconds).
+Test Case '-[HibikiTranslateTests.E2EHibikiTranslateTests testSpanishToEnglishTranslation]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/HibikiTranslateTests/E2EHibikiTranslateTests.swift:202: -[HibikiTranslateTests.E2EHibikiTranslateTests testSpanishToEnglishTranslation] : Test skipped - Set HIBIKI_E2E=1 to run Hibiki E2E translation
+Test Case '-[HibikiTranslateTests.E2EHibikiTranslateTests testSpanishToEnglishTranslation]' skipped (0.000 seconds).
+Test Case '-[HibikiTranslateTests.E2EHibikiTranslateTests testZero3BDepformerGenerateOnRealWeights]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/HibikiTranslateTests/E2EHibikiTranslateTests.swift:75: -[HibikiTranslateTests.E2EHibikiTranslateTests testZero3BDepformerGenerateOnRealWeights] : Test skipped - Set HIBIKI_E2E=1 to run Hibiki E2E tests
+Test Case '-[HibikiTranslateTests.E2EHibikiTranslateTests testZero3BDepformerGenerateOnRealWeights]' skipped (0.000 seconds).
+Test Case '-[HibikiTranslateTests.E2EHibikiTranslateTests testZero3BLoadAndForward]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/HibikiTranslateTests/E2EHibikiTranslateTests.swift:24: -[HibikiTranslateTests.E2EHibikiTranslateTests testZero3BLoadAndForward] : Test skipped - Set HIBIKI_E2E=1 to run Hibiki E2E tests (~2.7 GB download)
+Test Case '-[HibikiTranslateTests.E2EHibikiTranslateTests testZero3BLoadAndForward]' skipped (0.000 seconds).
+Test Suite 'E2EHibikiTranslateTests' passed at 2026-07-27 08:05:31.738.
+	 Executed 8 tests, with 8 tests skipped and 0 failures (0 unexpected) in 0.005 (0.006) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:05:31.738.
+	 Executed 8 tests, with 8 tests skipped and 0 failures (0 unexpected) in 0.005 (0.006) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:05:31.738.
+	 Executed 8 tests, with 8 tests skipped and 0 failures (0 unexpected) in 0.005 (0.011) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

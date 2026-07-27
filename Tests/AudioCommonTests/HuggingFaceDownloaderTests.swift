@@ -257,20 +257,43 @@ final class HuggingFaceDownloaderTests: XCTestCase {
         XCTAssertTrue(HuggingFaceDownloader.weightsExist(in: tmpDir))
     }
 
-    func testByteWeightedDownloadAllowsMissingOptionalIndexOffline() async throws {
+    /// Offline is satisfied only when every resolved file is already cached —
+    /// callers resolve the file set from the repository listing, so anything in
+    /// that list is genuinely required.
+    func testByteWeightedOfflineSucceedsWhenEveryFileIsCached() async throws {
         let tmpDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("optional_index_\(UUID().uuidString)")
+            .appendingPathComponent("offline_hit_\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tmpDir) }
+
+        try Data([0x00]).write(to: tmpDir.appendingPathComponent("model.safetensors"))
+        try Data([0x00]).write(to: tmpDir.appendingPathComponent("config.json"))
+
+        try await HuggingFaceDownloader.downloadFilesByteWeighted(
+            modelId: "fake/single-file-model",
+            to: tmpDir,
+            files: ["model.safetensors", "config.json"],
+            offlineMode: true)
+    }
+
+    func testByteWeightedOfflineNamesTheMissingFile() async throws {
+        let tmpDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("offline_miss_\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tmpDir) }
 
         try Data([0x00]).write(to: tmpDir.appendingPathComponent("model.safetensors"))
 
-        try await HuggingFaceDownloader.downloadFilesByteWeighted(
-            modelId: "fake/single-file-model",
-            to: tmpDir,
-            files: ["model.safetensors", "model.safetensors.index.json"],
-            optionalFiles: ["model.safetensors.index.json"],
-            offlineMode: true)
+        do {
+            try await HuggingFaceDownloader.downloadFilesByteWeighted(
+                modelId: "fake/single-file-model",
+                to: tmpDir,
+                files: ["model.safetensors", "config.json"],
+                offlineMode: true)
+            XCTFail("offline download with a missing file should throw")
+        } catch {
+            XCTAssertTrue("\(error)".contains("config.json"), "unexpected error: \(error)")
+        }
     }
 
     func testHubRequestPropagatesTokenToRangeProbeRequest() {

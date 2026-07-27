@@ -1,0 +1,16 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:40:18.100.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:40:18.105.
+Test Suite 'E2EOmnilingualMLX1BTests' started at 2026-07-27 08:40:18.105.
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLX1BTests testLoadAndTranscribe1B]' started.
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLX1BTests testLoadAndTranscribe1B]' passed (56.032 seconds).
+Test Suite 'E2EOmnilingualMLX1BTests' passed at 2026-07-27 08:41:14.137.
+	 Executed 1 test, with 0 failures (0 unexpected) in 56.032 (56.032) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:41:14.137.
+	 Executed 1 test, with 0 failures (0 unexpected) in 56.032 (56.032) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:41:14.137.
+	 Executed 1 test, with 0 failures (0 unexpected) in 56.032 (56.036) seconds
+Omnilingual MLX (1B-4bit) transcript: can you guarantee that the replacement par o be shipe tomorrow
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

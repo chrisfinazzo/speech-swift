@@ -1,0 +1,98 @@
+Test Suite 'Selected tests' started at 2026-07-27 09:10:55.970.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 09:10:55.974.
+Test Suite 'E2EICLVoiceCloningTests' started at 2026-07-27 09:10:55.974.
+Test Case '-[Qwen3TTSTests.E2EICLVoiceCloningTests testE2EEncoderWeightLoading]' started.
+Loaded 33 added tokens from tokenizer_config.json
+Loaded tokenizer with 151676 tokens, 151291 merges
+Loaded 480 weights from safetensors
+Found 316 talker weights
+Applied weights to Talker (28 layers)
+Found 88 code predictor weights
+Applied weights to Code Predictor (5 layers)
+Found 76 speaker encoder weights
+Applied weights to Speaker Encoder
+Found 496 speech tokenizer weights total
+Applied weights to Speech Tokenizer Decoder
+Found 496 speech tokenizer weights total (encoder load)
+Applied weights to Mimi codec encoder
+Test Case '-[Qwen3TTSTests.E2EICLVoiceCloningTests testE2EEncoderWeightLoading]' passed (0.900 seconds).
+Test Case '-[Qwen3TTSTests.E2EICLVoiceCloningTests testE2EICLGermanEOS]' started.
+Loaded 33 added tokens from tokenizer_config.json
+Loaded tokenizer with 151676 tokens, 151291 merges
+Loaded 480 weights from safetensors
+Found 316 talker weights
+Applied weights to Talker (28 layers)
+Found 88 code predictor weights
+Applied weights to Code Predictor (5 layers)
+Found 76 speaker encoder weights
+Applied weights to Speaker Encoder
+Found 496 speech tokenizer weights total
+Applied weights to Speech Tokenizer Decoder
+Found 496 speech tokenizer weights total (encoder load)
+Applied weights to Mimi codec encoder
+  ICL: encoded 76799 samples → 40 codec frames
+  ICL: decoding 21 target frames (+ 40 ref ctx) → 61 frames...
+  ICL: cut 71134 reference samples (~2.96s, 40/61 frames) from output start
+  ICL timing: encode=0.098s | generate=2.632s (21 steps, 125ms/step) | decode=0.155s | total=2.885s | audio=1.56s | RTF=1.85
+Test Case '-[Qwen3TTSTests.E2EICLVoiceCloningTests testE2EICLGermanEOS]' passed (3.660 seconds).
+Test Case '-[Qwen3TTSTests.E2EICLVoiceCloningTests testE2EICLRoundTrip]' started.
+Loaded 33 added tokens from tokenizer_config.json
+Loaded tokenizer with 151676 tokens, 151291 merges
+Loaded 480 weights from safetensors
+Found 316 talker weights
+Applied weights to Talker (28 layers)
+Found 88 code predictor weights
+Applied weights to Code Predictor (5 layers)
+Found 76 speaker encoder weights
+Applied weights to Speaker Encoder
+Found 496 speech tokenizer weights total
+Applied weights to Speech Tokenizer Decoder
+Found 496 speech tokenizer weights total (encoder load)
+Applied weights to Mimi codec encoder
+  ICL: encoded 76799 samples → 40 codec frames
+  ICL: decoding 20 target frames (+ 40 ref ctx) → 60 frames...
+  ICL: cut 71040 reference samples (~2.96s, 40/60 frames) from output start
+  ICL timing: encode=0.088s | generate=2.493s (20 steps, 125ms/step) | decode=0.148s | total=2.730s | audio=1.48s | RTF=1.84
+Loaded 62 added tokens from tokenizer_config.json
+Loaded tokenizer with 151705 tokens, 151291 merges
+Test Case '-[Qwen3TTSTests.E2EICLVoiceCloningTests testE2EICLRoundTrip]' passed (5.710 seconds).
+Test Case '-[Qwen3TTSTests.E2EICLVoiceCloningTests testE2EICLSynthesis]' started.
+Loaded 33 added tokens from tokenizer_config.json
+Loaded tokenizer with 151676 tokens, 151291 merges
+Loaded 480 weights from safetensors
+Found 316 talker weights
+Applied weights to Talker (28 layers)
+Found 88 code predictor weights
+Applied weights to Code Predictor (5 layers)
+Found 76 speaker encoder weights
+Applied weights to Speaker Encoder
+Found 496 speech tokenizer weights total
+Applied weights to Speech Tokenizer Decoder
+Found 496 speech tokenizer weights total (encoder load)
+Applied weights to Mimi codec encoder
+  ICL: encoded 76799 samples → 40 codec frames
+  ICL: decoding 23 target frames (+ 40 ref ctx) → 63 frames...
+  ICL: cut 71314 reference samples (~2.97s, 40/63 frames) from output start
+  ICL timing: encode=0.090s | generate=2.895s (23 steps, 126ms/step) | decode=0.201s | total=3.186s | audio=1.71s | RTF=1.86
+Test Case '-[Qwen3TTSTests.E2EICLVoiceCloningTests testE2EICLSynthesis]' passed (3.950 seconds).
+Test Suite 'E2EICLVoiceCloningTests' passed at 2026-07-27 09:11:10.195.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 14.220 (14.221) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 09:11:10.195.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 14.220 (14.221) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 09:11:10.195.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 14.220 (14.225) seconds
+Encoder: 76799 samples → 40 frames, codebook0 distinct=33
+  Talker done: 21 codec tokens (~1.7s audio)
+German ICL: 1.56s audio
+  Talker done: 20 codec tokens (~1.6s audio)
+Found 1 safetensor files
+Loading: model.safetensors
+Applied weights to audio encoder (18 layers, 301 tensors)
+Applied weights to text decoder (28 layers, 704 tensors)
+ICL round-trip: 'Good morning everyone.' → 'Good morning, everyone.'
+  Talker done: 23 codec tokens (~1.8s audio)
+ICL synthesis: 41006 samples (1.71s)
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

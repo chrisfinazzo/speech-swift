@@ -1,0 +1,19 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:05:33.455.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:05:33.461.
+Test Suite 'E2EIndexTTS2BundleTests' started at 2026-07-27 08:05:33.461.
+Test Case '-[IndexTTS2TTSTests.E2EIndexTTS2BundleTests testExpandedBundleLoadsAndReportsCurrentSynthesisStatus]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/IndexTTS2TTSTests/E2EIndexTTS2BundleTests.swift:235: -[IndexTTS2TTSTests.E2EIndexTTS2BundleTests testExpandedBundleLoadsAndReportsCurrentSynthesisStatus] : Test skipped - Set INDEXTTS2_E2E_BUNDLE or INDEXTTS2_E2E_DOWNLOAD=1 to run IndexTTS2 bundle E2E
+Test Case '-[IndexTTS2TTSTests.E2EIndexTTS2BundleTests testExpandedBundleLoadsAndReportsCurrentSynthesisStatus]' skipped (0.003 seconds).
+Test Case '-[IndexTTS2TTSTests.E2EIndexTTS2BundleTests testFullSynthesisBenchmarkAndOptionalASRRoundtrip]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/IndexTTS2TTSTests/E2EIndexTTS2BundleTests.swift:235: -[IndexTTS2TTSTests.E2EIndexTTS2BundleTests testFullSynthesisBenchmarkAndOptionalASRRoundtrip] : Test skipped - Set INDEXTTS2_E2E_BUNDLE or INDEXTTS2_E2E_DOWNLOAD=1 to run IndexTTS2 bundle E2E
+Test Case '-[IndexTTS2TTSTests.E2EIndexTTS2BundleTests testFullSynthesisBenchmarkAndOptionalASRRoundtrip]' skipped (0.000 seconds).
+Test Suite 'E2EIndexTTS2BundleTests' passed at 2026-07-27 08:05:33.465.
+	 Executed 2 tests, with 2 tests skipped and 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:05:33.465.
+	 Executed 2 tests, with 2 tests skipped and 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:05:33.465.
+	 Executed 2 tests, with 2 tests skipped and 0 failures (0 unexpected) in 0.004 (0.009) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

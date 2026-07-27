@@ -1,0 +1,30 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:49:14.319.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:49:14.324.
+Test Suite 'E2EQwen3ASRHarshAudioTests' started at 2026-07-27 08:49:14.324.
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRHarshAudioTests testNoLoopOnContinuousStitchedSpeech]' started.
+Loaded 62 added tokens from tokenizer_config.json
+Loaded tokenizer with 151705 tokens, 151291 merges
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRHarshAudioTests testNoLoopOnContinuousStitchedSpeech]' passed (3.594 seconds).
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRHarshAudioTests testNoLoopOnNoisyContinuousSpeech]' started.
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRHarshAudioTests testNoLoopOnNoisyContinuousSpeech]' passed (1.348 seconds).
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRHarshAudioTests testNoRepeatNgramHandlesNoisyContinuousSpeech]' started.
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRHarshAudioTests testNoRepeatNgramHandlesNoisyContinuousSpeech]' passed (1.396 seconds).
+Test Suite 'E2EQwen3ASRHarshAudioTests' passed at 2026-07-27 08:49:20.663.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 6.338 (6.339) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:49:20.663.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 6.338 (6.339) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:49:20.663.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 6.338 (6.344) seconds
+Found 1 safetensor files
+Loading: model.safetensors
+Applied weights to audio encoder (18 layers, 301 tensors)
+Applied weights to text decoder (28 layers, 704 tensors)
+stitched continuous: 385800 samples @ 24kHz = 16.075 s
+0.6B greedy continuous (1.297326922416687s): "Marigot stood by the window as the rain tapped against the glass. She poured another cup of coffee and watched the gray sky. The morning newspaper sat unread on the kitchen table. A black cat slipped quietly between the garden hedges. She wondered when her sister would finally call her back."
+noisy stitched continuous: 385800 samples @ 24kHz = 16.075 s
+0.6B greedy noisy continuous: "Marigot stood by the window as the rain tapped against the glass. She poured another cup of coffee and watched the gray sky. The morning newspaper sat unread on the kitchen table. A black cat slipped quietly between the garden hedges. She wondered when her sister would finally call her back."
+0.6B noRepeatNgram=3 noisy: "Marigot stood by the window as the rain tapped against the glass. She poured another cup of coffee and watched the gray sky. The morning newspaper sat unread on the kitchen table. A black cat slipped quietly between the garden hedges. She wondered when her sister would finally call her back."
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

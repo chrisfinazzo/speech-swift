@@ -1,0 +1,26 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:36:43.589.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:36:43.594.
+Test Suite 'E2ENemotronHarshAudioTests' started at 2026-07-27 08:36:43.594.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronHarshAudioTests testNoLangTagOnOverlappedSpeech]' started.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronHarshAudioTests testNoLangTagOnOverlappedSpeech]' passed (84.888 seconds).
+Test Case '-[NemotronStreamingASRTests.E2ENemotronHarshAudioTests testNoLangTagUnderBabbleNoise]' started.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronHarshAudioTests testNoLangTagUnderBabbleNoise]' passed (1.690 seconds).
+Test Case '-[NemotronStreamingASRTests.E2ENemotronHarshAudioTests testStreamingMatchesBatchOnCleanLongUtterance]' started.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronHarshAudioTests testStreamingMatchesBatchOnCleanLongUtterance]' passed (15.267 seconds).
+Test Suite 'E2ENemotronHarshAudioTests' passed at 2026-07-27 08:38:25.440.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 101.845 (101.846) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:38:25.440.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 101.845 (101.846) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:38:25.440.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 101.845 (101.850) seconds
+Output rank has increased after reshaping espresso network for blob = encoder_hidden_states_classic_cpu and upper dims are not 1 @ ReshapeOperationInternalOutput rank has increased after reshaping espresso network for blob = encoder_hidden_states_classic_cpu and upper dims are not 1 @ ReshapeOperationInternaloverlap mix: 84000 samples @ 24kHz = 3.5 s
+Nemotron overlapped transcript: "The conference for me had a long case"
+babble mix: 320000 samples @ 16kHz = 20.0 s
+Nemotron babble-SNR8 transcript: "Can you guarantee that the replacement part will be shipped tomorrow"
+Output rank has increased after reshaping espresso network for blob = encoder_hidden_states_classic_cpu and upper dims are not 1 @ ReshapeOperationInternalOutput rank has increased after reshaping espresso network for blob = encoder_hidden_states_classic_cpu and upper dims are not 1 @ ReshapeOperationInternalclean-long recall (stream covers batch): 1.0
+  batch:  "The quarterly report indicated steady growth across all three divisions"
+  stream: "The quarterly report indicated steady growth across all three divisions"
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

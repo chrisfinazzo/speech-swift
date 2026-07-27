@@ -1,0 +1,47 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:18:09.749.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:18:09.753.
+Test Suite 'E2EDiagnosticsTests' started at 2026-07-27 08:18:09.753.
+Test Case '-[MAGNeTMusicGenTests.E2EDiagnosticsTests testLMFirstForwardMatchesPython]' started.
+Test Case '-[MAGNeTMusicGenTests.E2EDiagnosticsTests testLMFirstForwardMatchesPython]' passed (74.532 seconds).
+Test Case '-[MAGNeTMusicGenTests.E2EDiagnosticsTests testLMFirstForwardMatchesPythonMediumInt8]' started.
+Test Case '-[MAGNeTMusicGenTests.E2EDiagnosticsTests testLMFirstForwardMatchesPythonMediumInt8]' passed (189.527 seconds).
+Test Case '-[MAGNeTMusicGenTests.E2EDiagnosticsTests testT5EncoderMatchesPython]' started.
+Test Case '-[MAGNeTMusicGenTests.E2EDiagnosticsTests testT5EncoderMatchesPython]' passed (1.965 seconds).
+Test Case '-[MAGNeTMusicGenTests.E2EDiagnosticsTests testTokenizerProducesSameIdsForHappyRock]' started.
+Test Case '-[MAGNeTMusicGenTests.E2EDiagnosticsTests testTokenizerProducesSameIdsForHappyRock]' passed (1.898 seconds).
+Test Suite 'E2EDiagnosticsTests' passed at 2026-07-27 08:22:37.675.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 267.922 (267.922) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:22:37.675.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 267.922 (267.922) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:22:37.675.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 267.922 (267.927) seconds
+[SWIFT smallInt4] LM cond_logits[0,0,0,:8]   = [0.4452065, -1.3108386, -1.4194459, 0.7283454, 1.1619651, -1.1631694, -0.34367543, -3.571617]
+[SWIFT smallInt4] LM uncond_logits[1,0,0,:8] = [-0.43698967, -3.0242293, -3.3303611, -1.5964404, 0.49726275, -2.8707004, -2.5039496, -6.0366836]
+[SWIFT smallInt4] stage-0 argmax histogram (top 5):
+    token 83: 1134 times (75.6%)
+    token 1103: 365 times (24.333333333333336%)
+    token 1964: 1 times (0.06666666666666667%)
+[SWIFT mediumInt8] LM cond_logits[0,0,0,:8]   = [-0.7563496, -3.0591564, -2.6825867, -0.88452876, 0.01767404, -1.4740542, -1.7757217, -6.5172343]
+[SWIFT mediumInt8] LM uncond_logits[1,0,0,:8] = [-0.7963263, -4.3300266, -4.433046, -2.0337973, -0.013524741, -2.7047112, -3.129048, -7.7294197]
+[SWIFT mediumInt8] stage-0 argmax histogram (top 5):
+    token 83: 1499 times (99.93333333333332%)
+    token 172: 1 times (0.06666666666666667%)
+[SWIFT] sanitized layers.0.attention.query_proj.weight[0,:5] = [0.076171875, -0.04711914, 0.030883789, 0.080078125, -0.018798828]
+[SWIFT] sanitized layers.0.attention.query_proj.weight.shape = [768, 768]
+[SWIFT] wte(ids)[0,0,:8] = [2.890625, 7.03125, -9.8125, 10.1875, -21.375, -17.5, 1.3046875, 9.3125]
+[SWIFT] pos_bias shape=[12, 3, 3] [0,0,:3] = [2.890625, 1.3046875, 1.5078125]
+[SWIFT] layer0 ln1(x)[0,0,:5] = [0.021150826, 0.04632644, -0.07862096, 0.062737025, -0.14366318]
+[SWIFT] layer0 queryProj(ln1)[0,0,:5] = [-0.012901835, -0.14815554, -0.039668277, -0.36737257, 0.09007238]
+[SWIFT] layer0 queryProj.weight[0,:5] = [0.076171875, -0.04711914, 0.030883789, 0.080078125, -0.018798828]
+[SWIFT] layer0 queryProj.weight.shape = [768, 768]
+[SWIFT] layer 0: mean=-0.541104 std=46.635155 [0,0,0]=-17.060413 [0,0,3]=10.660389
+[SWIFT] layer 1: mean=-0.398408 std=63.570435 [0,0,0]=-4.521873 [0,0,3]=16.806488
+[SWIFT] layer 2: mean=-0.401021 std=83.651962 [0,0,0]=9.833065 [0,0,3]=24.724689
+[SWIFT] layer 11: mean=12.315863 std=1203.353027 [0,0,0]=-21.295158 [0,0,3]=103.371414
+[SWIFT] T5 final stats: mean=-0.0057702656 std=0.23224
+[SWIFT] T5[0,0,:8] = [-0.062036905, -0.058571238, -0.12256422, 0.2810648, -0.2454558, 0.15913355, 0.24403763, -0.32151368]
+[SWIFT] token IDs: [1095, 2480, 1]
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

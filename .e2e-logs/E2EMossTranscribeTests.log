@@ -1,0 +1,32 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:28:45.615.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:28:45.619.
+Test Suite 'E2EMossTranscribeTests' started at 2026-07-27 08:28:45.619.
+Test Case '-[MossTranscribeTests.E2EMossTranscribeTests testFP16RoundTripProducesStructuredTranscript]' started.
+Test Case '-[MossTranscribeTests.E2EMossTranscribeTests testFP16RoundTripProducesStructuredTranscript]' passed (189.933 seconds).
+Test Case '-[MossTranscribeTests.E2EMossTranscribeTests testINT8RoundTripProducesStructuredTranscript]' started.
+Test Case '-[MossTranscribeTests.E2EMossTranscribeTests testINT8RoundTripProducesStructuredTranscript]' passed (150.277 seconds).
+Test Case '-[MossTranscribeTests.E2EMossTranscribeTests testMLXINT5RoundTripProducesStructuredTranscript]' started.
+Test Case '-[MossTranscribeTests.E2EMossTranscribeTests testMLXINT5RoundTripProducesStructuredTranscript]' passed (4.479 seconds).
+Test Case '-[MossTranscribeTests.E2EMossTranscribeTests testMLXINT5WeightsWithINT8KVCacheProduceStructuredTranscript]' started.
+Test Case '-[MossTranscribeTests.E2EMossTranscribeTests testMLXINT5WeightsWithINT8KVCacheProduceStructuredTranscript]' passed (4.445 seconds).
+Test Case '-[MossTranscribeTests.E2EMossTranscribeTests testMLXINT8RoundTripProducesStructuredTranscript]' started.
+Test Case '-[MossTranscribeTests.E2EMossTranscribeTests testMLXINT8RoundTripProducesStructuredTranscript]' passed (122.835 seconds).
+Test Case '-[MossTranscribeTests.E2EMossTranscribeTests testMLXINT8WeightsWithINT8KVCacheProduceStructuredTranscript]' started.
+Test Case '-[MossTranscribeTests.E2EMossTranscribeTests testMLXINT8WeightsWithINT8KVCacheProduceStructuredTranscript]' passed (4.488 seconds).
+Test Case '-[MossTranscribeTests.E2EMossTranscribeTests testSwiftTokenizerPromptMatchesPinnedReference]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/MossTranscribeTests/E2EMossTranscribeTests.swift:12: -[MossTranscribeTests.E2EMossTranscribeTests testSwiftTokenizerPromptMatchesPinnedReference] : Test skipped - set MOSS_TOKENIZER_DIR to a MOSS model bundle
+Test Case '-[MossTranscribeTests.E2EMossTranscribeTests testSwiftTokenizerPromptMatchesPinnedReference]' skipped (0.001 seconds).
+Test Suite 'E2EMossTranscribeTests' passed at 2026-07-27 08:36:42.077.
+	 Executed 7 tests, with 1 test skipped and 0 failures (0 unexpected) in 476.458 (476.458) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:36:42.077.
+	 Executed 7 tests, with 1 test skipped and 0 failures (0 unexpected) in 476.458 (476.458) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:36:42.077.
+	 Executed 7 tests, with 1 test skipped and 0 failures (0 unexpected) in 476.458 (476.463) seconds
+[MOSS-COREML-FP16] RTF=0.0371 throughput=26.97x preprocessing=0.024s encoder=0.088s prefill=0.108s decode=0.521s prompt=343 generated=28
+[MOSS-COREML-INT8] RTF=0.0347 throughput=28.83x preprocessing=0.024s encoder=0.088s prefill=0.108s decode=0.473s prompt=343 generated=28
+[MOSS-MLX-INT5] RTF=0.0165 throughput=60.56x preprocessing=0.024s encoder=0.065s prefill=0.036s decode=0.204s prompt=343 generated=28
+[MOSS-MLX-INT8] RTF=0.0162 throughput=61.57x preprocessing=0.023s encoder=0.061s prefill=0.029s decode=0.210s prompt=343 generated=28
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

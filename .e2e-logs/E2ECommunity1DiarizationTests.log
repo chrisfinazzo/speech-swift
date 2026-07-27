@@ -1,0 +1,16 @@
+Test Suite 'Selected tests' started at 2026-07-27 09:24:44.366.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 09:24:44.371.
+Test Suite 'E2ECommunity1DiarizationTests' started at 2026-07-27 09:24:44.371.
+Test Case '-[SpeechVADTests.E2ECommunity1DiarizationTests testPublishedBundleOnVoxConverseProbe]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/SpeechVADTests/Community1DiarizationTests.swift:141: -[SpeechVADTests.E2ECommunity1DiarizationTests testPublishedBundleOnVoxConverseProbe] : Test skipped - set COMMUNITY1_COREML_BUNDLE, COMMUNITY1_TEST_AUDIO, and COMMUNITY1_TEST_RTTM
+Test Case '-[SpeechVADTests.E2ECommunity1DiarizationTests testPublishedBundleOnVoxConverseProbe]' skipped (0.001 seconds).
+Test Suite 'E2ECommunity1DiarizationTests' passed at 2026-07-27 09:24:44.372.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 09:24:44.372.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 09:24:44.372.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.006) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

@@ -1,0 +1,39 @@
+Test Suite 'Selected tests' started at 2026-07-27 09:02:52.797.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 09:02:52.802.
+Test Suite 'E2EQwen3TTSCoreMLTests' started at 2026-07-27 09:02:52.802.
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLTests testProtocolConformance]' started.
+Loaded tokenizer with 151643 tokens, 151291 merges
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLTests testProtocolConformance]' passed (11.460 seconds).
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLTests testRoundTripSynthesizeTranscribe]' started.
+Loaded tokenizer with 151643 tokens, 151291 merges
+Loaded 62 added tokens from tokenizer_config.json
+Loaded tokenizer with 151705 tokens, 151291 merges
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLTests testRoundTripSynthesizeTranscribe]' passed (17.575 seconds).
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLTests testSynthesizeMultipleLanguages]' started.
+Loaded tokenizer with 151643 tokens, 151291 merges
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLTests testSynthesizeMultipleLanguages]' passed (18.940 seconds).
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLTests testSynthesizeProducesAudio]' started.
+Loaded tokenizer with 151643 tokens, 151291 merges
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLTests testSynthesizeProducesAudio]' passed (11.509 seconds).
+Test Suite 'E2EQwen3TTSCoreMLTests' passed at 2026-07-27 09:03:52.286.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 59.483 (59.484) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 09:03:52.286.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 59.483 (59.484) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 09:03:52.286.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 59.483 (59.489) seconds
+Found 1 safetensor files
+Loading: model.safetensors
+Applied weights to audio encoder (18 layers, 301 tensors)
+Applied weights to text decoder (28 layers, 704 tensors)
+Synthesized 78720 samples (3.28s)
+Input:  "The quick brown fox jumps over the lazy dog"
+Output: "The quick brown fox jumps over the lazy dog."
+Matched 6/6 keywords: ["quick", "brown", "fox", "jumps", "lazy", "dog"]
+english (Hello): 26880 samples (1.12s)
+chinese (你好): 42240 samples (1.76s)
+german (Hallo): 26880 samples (1.12s)
+Generated 26880 samples (1.12s)
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

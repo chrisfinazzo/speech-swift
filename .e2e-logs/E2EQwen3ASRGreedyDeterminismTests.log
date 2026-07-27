@@ -1,0 +1,30 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:49:07.705.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:49:07.711.
+Test Suite 'E2EQwen3ASRGreedyDeterminismTests' started at 2026-07-27 08:49:07.711.
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRGreedyDeterminismTests testGreedyDecodeIsDeterministic]' started.
+Loaded 62 added tokens from tokenizer_config.json
+Loaded tokenizer with 151705 tokens, 151291 merges
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRGreedyDeterminismTests testGreedyDecodeIsDeterministic]' passed (3.399 seconds).
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRGreedyDeterminismTests testGreedyDecodeMatchesSnapshot]' started.
+Loaded 62 added tokens from tokenizer_config.json
+Loaded tokenizer with 151705 tokens, 151291 merges
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRGreedyDeterminismTests testGreedyDecodeMatchesSnapshot]' passed (2.383 seconds).
+Test Suite 'E2EQwen3ASRGreedyDeterminismTests' passed at 2026-07-27 08:49:13.493.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 5.782 (5.783) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:49:13.493.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 5.782 (5.783) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:49:13.493.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 5.782 (5.788) seconds
+Found 1 safetensor files
+Loading: model.safetensors
+Applied weights to audio encoder (18 layers, 301 tensors)
+Applied weights to text decoder (28 layers, 704 tensors)
+Found 1 safetensor files
+Loading: model.safetensors
+Applied weights to audio encoder (18 layers, 301 tensors)
+Applied weights to text decoder (28 layers, 704 tensors)
+Greedy snapshot transcription: "Can you guarantee that the replacement part will be shipped tomorrow?"
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

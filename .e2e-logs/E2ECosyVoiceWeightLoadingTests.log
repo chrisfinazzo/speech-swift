@@ -1,0 +1,22 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:04:00.165.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:04:00.170.
+Test Suite 'E2ECosyVoiceWeightLoadingTests' started at 2026-07-27 08:04:00.170.
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceWeightLoadingTests testLoadFlow]' started.
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceWeightLoadingTests testLoadFlow]' passed (0.037 seconds).
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceWeightLoadingTests testLoadHiFiGAN]' started.
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceWeightLoadingTests testLoadHiFiGAN]' passed (0.010 seconds).
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceWeightLoadingTests testLoadLLM]' started.
+Test Case '-[CosyVoiceTTSTests.E2ECosyVoiceWeightLoadingTests testLoadLLM]' passed (0.014 seconds).
+Test Suite 'E2ECosyVoiceWeightLoadingTests' passed at 2026-07-27 08:04:00.231.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.061 (0.061) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:04:00.231.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.061 (0.061) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:04:00.231.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.061 (0.066) seconds
+Flow weights loaded successfully
+HiFi-GAN weights loaded successfully
+LLM weights loaded successfully
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

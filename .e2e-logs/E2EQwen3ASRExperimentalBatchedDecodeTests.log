@@ -1,0 +1,16 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:49:06.764.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:49:06.770.
+Test Suite 'E2EQwen3ASRExperimentalBatchedDecodeTests' started at 2026-07-27 08:49:06.770.
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRExperimentalBatchedDecodeTests testExperimentalBatchTruncatesRow1ForRepeatedChunkAtBatchSize2]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/Qwen3ASRTests/E2EQwen3ASRExperimentalBatchedDecodeTests.swift:35: -[Qwen3ASRTests.E2EQwen3ASRExperimentalBatchedDecodeTests testExperimentalBatchTruncatesRow1ForRepeatedChunkAtBatchSize2] : Test skipped - Experimental batch decoder gate not set
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRExperimentalBatchedDecodeTests testExperimentalBatchTruncatesRow1ForRepeatedChunkAtBatchSize2]' skipped (0.001 seconds).
+Test Suite 'E2EQwen3ASRExperimentalBatchedDecodeTests' passed at 2026-07-27 08:49:06.771.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:49:06.771.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:49:06.771.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.008) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

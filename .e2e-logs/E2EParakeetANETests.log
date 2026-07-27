@@ -1,0 +1,15 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:42:10.186.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:42:10.191.
+Test Suite 'E2EParakeetANETests' started at 2026-07-27 08:42:10.191.
+Test Case '-[ParakeetASRTests.E2EParakeetANETests testEncoderLoadsAndPredictsOnANE]' started.
+Test Case '-[ParakeetASRTests.E2EParakeetANETests testEncoderLoadsAndPredictsOnANE]' passed (3.553 seconds).
+Test Suite 'E2EParakeetANETests' passed at 2026-07-27 08:42:13.744.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.553 (3.553) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:42:13.744.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.553 (3.553) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:42:13.744.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.553 (3.558) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

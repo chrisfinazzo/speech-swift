@@ -1,0 +1,19 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:42:39.637.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:42:39.642.
+Test Suite 'E2EParakeetShapeAdaptationTests' started at 2026-07-27 08:42:39.642.
+Test Case '-[ParakeetASRTests.E2EParakeetShapeAdaptationTests testDefaultModelDiscoversSingleShape3000]' started.
+Test Case '-[ParakeetASRTests.E2EParakeetShapeAdaptationTests testDefaultModelDiscoversSingleShape3000]' passed (3.653 seconds).
+Test Case '-[ParakeetASRTests.E2EParakeetShapeAdaptationTests testIOSModelDiscoversSingleShape500]' started.
+Test Case '-[ParakeetASRTests.E2EParakeetShapeAdaptationTests testIOSModelDiscoversSingleShape500]' passed (84.608 seconds).
+Test Case '-[ParakeetASRTests.E2EParakeetShapeAdaptationTests testIOSModelTranscribesShortClip]' started.
+Test Case '-[ParakeetASRTests.E2EParakeetShapeAdaptationTests testIOSModelTranscribesShortClip]' passed (2.545 seconds).
+Test Suite 'E2EParakeetShapeAdaptationTests' passed at 2026-07-27 08:44:10.447.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 90.805 (90.806) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:44:10.447.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 90.805 (90.806) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:44:10.447.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 90.805 (90.810) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

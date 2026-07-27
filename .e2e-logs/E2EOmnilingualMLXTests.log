@@ -1,0 +1,31 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:42:03.928.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:42:03.932.
+Test Suite 'E2EOmnilingualMLXTests' started at 2026-07-27 08:42:03.932.
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXTests testLoadsModel]' started.
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXTests testLoadsModel]' passed (0.798 seconds).
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXTests testRejectsAudioExceedingMaxSeconds]' started.
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXTests testRejectsAudioExceedingMaxSeconds]' passed (0.945 seconds).
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXTests testTranscribeArabicFleurs]' started.
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXTests testTranscribeArabicFleurs]' passed (0.744 seconds).
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXTests testTranscribeFrenchFleurs]' started.
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXTests testTranscribeFrenchFleurs]' passed (0.711 seconds).
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXTests testTranscribeHindiFleurs]' started.
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXTests testTranscribeHindiFleurs]' passed (0.662 seconds).
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXTests testTranscribeRealAudio]' started.
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXTests testTranscribeRealAudio]' passed (0.871 seconds).
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXTests testWarmup]' started.
+Test Case '-[OmnilingualASRTests.E2EOmnilingualMLXTests testWarmup]' passed (0.780 seconds).
+Test Suite 'E2EOmnilingualMLXTests' passed at 2026-07-27 08:42:09.443.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 5.510 (5.511) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:42:09.443.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 5.510 (5.511) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:42:09.443.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 5.510 (5.515) seconds
+Omnilingual MLX AR: كما أثنى الزملاء المصارع على لونا
+Omnilingual MLX FR: pensez à létineraire deski comme unétineraire de rendonner similaire
+Omnilingual MLX HI: लूना को साथी पहलवानों ने भी सरधांजली दी
+Omnilingual MLX (300M-4bit) transcript: can you guarantee that the replacement part will be shiped tomorrow
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

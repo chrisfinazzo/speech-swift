@@ -1,0 +1,78 @@
+Test Suite 'Selected tests' started at 2026-07-27 09:20:23.795.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 09:20:23.800.
+Test Suite 'E2ETTSStreamingTests' started at 2026-07-27 09:20:23.800.
+Test Case '-[Qwen3TTSTests.E2ETTSStreamingTests testChunkOrdering]' started.
+Loaded 33 added tokens from tokenizer_config.json
+Loaded tokenizer with 151676 tokens, 151291 merges
+Loaded 976 weights from safetensors
+Found 714 talker weights
+Applied weights to Talker (28 layers)
+Found 186 code predictor weights
+Applied weights to Code Predictor (5 layers)
+Found 76 speaker encoder weights
+Applied weights to Speaker Encoder
+Found 496 speech tokenizer weights total
+Applied weights to Speech Tokenizer Decoder
+Test Case '-[Qwen3TTSTests.E2ETTSStreamingTests testChunkOrdering]' passed (2.498 seconds).
+Test Case '-[Qwen3TTSTests.E2ETTSStreamingTests testFirstPacketLatency]' started.
+Test Case '-[Qwen3TTSTests.E2ETTSStreamingTests testFirstPacketLatency]' passed (3.182 seconds).
+Test Case '-[Qwen3TTSTests.E2ETTSStreamingTests testLowLatencyConfig]' started.
+Test Case '-[Qwen3TTSTests.E2ETTSStreamingTests testLowLatencyConfig]' passed (1.773 seconds).
+Test Case '-[Qwen3TTSTests.E2ETTSStreamingTests testLowLatencyStreamingASRRoundTrip]' started.
+Loaded 62 added tokens from tokenizer_config.json
+Loaded tokenizer with 151705 tokens, 151291 merges
+Test Case '-[Qwen3TTSTests.E2ETTSStreamingTests testLowLatencyStreamingASRRoundTrip]' passed (3.171 seconds).
+Test Case '-[Qwen3TTSTests.E2ETTSStreamingTests testStreamingConfigDefaults]' started.
+Test Case '-[Qwen3TTSTests.E2ETTSStreamingTests testStreamingConfigDefaults]' passed (0.000 seconds).
+Test Case '-[Qwen3TTSTests.E2ETTSStreamingTests testStreamingConfigLowLatency]' started.
+Test Case '-[Qwen3TTSTests.E2ETTSStreamingTests testStreamingConfigLowLatency]' passed (0.000 seconds).
+Test Case '-[Qwen3TTSTests.E2ETTSStreamingTests testStreamingProducesAudio]' started.
+Test Case '-[Qwen3TTSTests.E2ETTSStreamingTests testStreamingProducesAudio]' passed (1.520 seconds).
+Test Case '-[Qwen3TTSTests.E2ETTSStreamingTests testStreamingVsBatchQuality]' started.
+Test Case '-[Qwen3TTSTests.E2ETTSStreamingTests testStreamingVsBatchQuality]' passed (2.363 seconds).
+Test Suite 'E2ETTSStreamingTests' passed at 2026-07-27 09:20:38.307.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 14.506 (14.507) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 09:20:38.307.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 14.506 (14.507) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 09:20:38.307.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 14.506 (14.512) seconds
+Loading TTS model...
+[TTS 5%] Preparing download...
+[TTS 60%] Loading tokenizer...
+[TTS 70%] Loading TTS model weights...
+[TTS 85%] Loading speech tokenizer decoder...
+[TTS 95%] Warming up model...
+[TTS 100%] Ready
+Chunks: [0] [3] [28]
+  Streaming: 51 tokens (~4.1s audio)...
+Warning: Hit safety limit of 75 tokens (~6.0s audio).
+First-packet latency: 128ms
+Low-latency: 4 chunks
+Loading ASR model...
+[ASR 0%] Downloading model...
+[ASR 80%] Downloading weights...
+[ASR 80%] Loading tokenizer...
+[ASR 85%] Loading audio encoder weights...
+Found 1 safetensor files
+Loading: model.safetensors
+Applied weights to audio encoder (18 layers, 301 tensors)
+[ASR 92%] Loading text decoder weights...
+Applied weights to text decoder (28 layers, 704 tensors)
+[ASR 100%] Ready
+Input:         "The weather is beautiful today."
+Transcription: "The weather is beautiful today."
+Chunks: 3, duration: 1.48s, first-packet: 62.40ms
+Matched 3/3: ["weather", "beautiful", "today"]
+Streaming: 3 chunks, 66240 samples (2.76s)
+  Talker done: 24 codec tokens (~1.9s audio)
+  Decoding 24 frames -> 46080 samples (1.9s)...
+  Timing: embed=0.001s | generate=0.970s (24 steps, 40ms/step) | decode=0.059s | total=1.029s | audio=1.80s | RTF=0.57
+Input:     "Good morning, how are you today?"
+Streaming: "Good morning. How are you today?"
+Batch:     "Good morning. How are you today?"
+Stream matched 3/3: ["morning", "how", "today"]
+Batch matched 3/3: ["morning", "how", "today"]
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

@@ -5,7 +5,6 @@ import os
 /// Download errors
 public enum DownloadError: Error, LocalizedError {
     case failedToDownload(String)
-    case remoteFileNotFound(modelId: String, file: String)
     case invalidRemoteFileName(String)
     /// A download attempt made no progress for `seconds` and was aborted
     /// so the caller's retry loop can fire instead of hanging.
@@ -15,8 +14,6 @@ public enum DownloadError: Error, LocalizedError {
         switch self {
         case .failedToDownload(let file):
             return "Failed to download: \(file)"
-        case .remoteFileNotFound(let modelId, let file):
-            return "Remote file not found: \(modelId)/\(file)"
         case .invalidRemoteFileName(let file):
             return "Refusing to write unsafe remote file name: \(file)"
         case .stalled(let modelId, let seconds):
@@ -247,7 +244,6 @@ public enum HuggingFaceDownloader {
         modelId: String,
         to directory: URL,
         files: [String],
-        optionalFiles: [String] = [],
         expectedSizes: [String: Int64]? = nil,
         offlineMode: Bool = false,
         retryDelaysSeconds: [Int]? = nil,
@@ -261,15 +257,9 @@ public enum HuggingFaceDownloader {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 
         let safeFiles = try files.map(validatedRemoteFileName)
-        let safeOptionalFiles = Set(try optionalFiles.map(validatedRemoteFileName))
-        guard safeOptionalFiles.isSubset(of: Set(safeFiles)) else {
-            throw DownloadError.failedToDownload(
-                "optionalFiles must be included in files for \(modelId)")
-        }
         if offlineMode {
             let missing = safeFiles.first {
-                !safeOptionalFiles.contains($0)
-                    && !FileManager.default.fileExists(atPath: directory.appendingPathComponent($0).path)
+                !FileManager.default.fileExists(atPath: directory.appendingPathComponent($0).path)
             }
             if let missing {
                 throw DownloadError.failedToDownload(
@@ -287,7 +277,6 @@ public enum HuggingFaceDownloader {
                 let remoteFiles = try await resolveRemoteFiles(
                     modelId: modelId,
                     files: safeFiles,
-                    optionalFiles: safeOptionalFiles,
                     expectedSizes: expectedSizes)
                 try await downloadResolvedFilesByteWeighted(
                     remoteFiles,
@@ -645,13 +634,11 @@ private extension HuggingFaceDownloader {
     static func resolveRemoteFiles(
         modelId: String,
         files: [String],
-        optionalFiles: Set<String>,
         expectedSizes: [String: Int64]?
     ) async throws -> [ResolvedRemoteFile] {
         if let expectedSizes {
-            return try files.compactMap { file in
+            return try files.map { file in
                 guard let size = expectedSizes[file], size > 0 else {
-                    if optionalFiles.contains(file) { return nil }
                     throw DownloadError.failedToDownload("\(modelId)/\(file): missing expected size")
                 }
                 return ResolvedRemoteFile(
@@ -661,14 +648,10 @@ private extension HuggingFaceDownloader {
             }
         }
 
-        return try await withThrowingTaskGroup(of: (Int, ResolvedRemoteFile?).self) { group in
+        return try await withThrowingTaskGroup(of: (Int, ResolvedRemoteFile).self) { group in
             for (index, file) in files.enumerated() {
                 group.addTask {
-                    do {
-                        return (index, try await resolveRemoteFile(modelId: modelId, file: file))
-                    } catch DownloadError.remoteFileNotFound where optionalFiles.contains(file) {
-                        return (index, nil)
-                    }
+                    (index, try await resolveRemoteFile(modelId: modelId, file: file))
                 }
             }
 
@@ -686,9 +669,6 @@ private extension HuggingFaceDownloader {
         let (_, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else {
             throw DownloadError.failedToDownload("\(modelId)/\(file): missing HTTP response")
-        }
-        if http.statusCode == 404 {
-            throw DownloadError.remoteFileNotFound(modelId: modelId, file: file)
         }
         guard (200..<300).contains(http.statusCode) else {
             throw DownloadError.failedToDownload("\(modelId)/\(file): HTTP \(http.statusCode)")

@@ -1,0 +1,21 @@
+Test Suite 'Selected tests' started at 2026-07-27 09:22:38.626.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 09:22:38.631.
+Test Suite 'E2EDeepFilterNet3ChunkingTests' started at 2026-07-27 09:22:38.631.
+Test Case '-[SpeechEnhancementTests.E2EDeepFilterNet3ChunkingTests testChunked_NinetySecondsLengthAndSanity]' started.
+Test Case '-[SpeechEnhancementTests.E2EDeepFilterNet3ChunkingTests testChunked_NinetySecondsLengthAndSanity]' passed (16.129 seconds).
+Test Case '-[SpeechEnhancementTests.E2EDeepFilterNet3ChunkingTests testChunked_NoStationaryPumpingAtSeams]' started.
+Test Case '-[SpeechEnhancementTests.E2EDeepFilterNet3ChunkingTests testChunked_NoStationaryPumpingAtSeams]' passed (10.819 seconds).
+Test Case '-[SpeechEnhancementTests.E2EDeepFilterNet3ChunkingTests testChunked_ShortInputMatchesSingleShot]' started.
+Test Case '-[SpeechEnhancementTests.E2EDeepFilterNet3ChunkingTests testChunked_ShortInputMatchesSingleShot]' passed (0.350 seconds).
+Test Suite 'E2EDeepFilterNet3ChunkingTests' passed at 2026-07-27 09:23:05.928.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 27.297 (27.298) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 09:23:05.928.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 27.297 (27.298) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 09:23:05.928.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 27.297 (27.302) seconds
+E5RT encountered an STL exception. msg = Failed to PropagateInputTensorShapes: std::runtime_error during type inference for ios17.slice_by_index: zero shape error.90 s chunked enhance: 13.60 s wall, 4320000 samples out
+seam RMS dB: pre=-67.83691 mid=-65.42316 post=-66.93752
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

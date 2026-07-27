@@ -1,0 +1,26 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:55:18.998.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:55:19.003.
+Test Suite 'E2EQwen3ASRLongFormTests' started at 2026-07-27 08:55:19.003.
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRLongFormTests testNoRepeatNgramOptionPreservesContent]' started.
+Loaded 62 added tokens from tokenizer_config.json
+Loaded tokenizer with 151705 tokens, 151291 merges
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRLongFormTests testNoRepeatNgramOptionPreservesContent]' passed (3.040 seconds).
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRLongFormTests testNoTrigramLoopOnLongAudio]' started.
+Test Case '-[Qwen3ASRTests.E2EQwen3ASRLongFormTests testNoTrigramLoopOnLongAudio]' passed (0.858 seconds).
+Test Suite 'E2EQwen3ASRLongFormTests' passed at 2026-07-27 08:55:22.901.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 3.897 (3.898) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:55:22.901.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 3.897 (3.898) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:55:22.901.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 3.897 (3.903) seconds
+Found 1 safetensor files
+Loading: model.safetensors
+Applied weights to audio encoder (18 layers, 301 tensors)
+Applied weights to text decoder (28 layers, 704 tensors)
+0.6B noRepeatNgram=3 long-form: "Can you guarantee that the replacement part will be shipped tomorrow? Can you guarantee thai replacement part wiill be shipped to morrow"
+0.6B greedy long-form (960000 samples / 24000 Hz) in 0.8191930055618286s: "Can you guarantee that the replacement part will be shipped tomorrow? Can you guarantee thai replacement part wiill be shipped to morrow"
+most-repeated trigram: ["can", "you", "guarantee"] ×2
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

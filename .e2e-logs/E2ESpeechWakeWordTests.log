@@ -1,0 +1,37 @@
+Test Suite 'Selected tests' started at 2026-07-27 09:25:56.641.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 09:25:56.645.
+Test Suite 'E2ESpeechWakeWordTests' started at 2026-07-27 09:25:56.645.
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testBeamSearchEmitsOnReferenceEncoder]' started.
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testBeamSearchEmitsOnReferenceEncoder]' passed (16.159 seconds).
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testDetectsLightUp]' started.
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testDetectsLightUp]' passed (0.574 seconds).
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testDetectsLovelyChildOrForEver]' started.
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testDetectsLovelyChildOrForEver]' passed (1.370 seconds).
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testLoadsModels]' started.
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testLoadsModels]' passed (0.000 seconds).
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testMemoryManagement]' started.
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testMemoryManagement]' passed (4.736 seconds).
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testRejectsEmptyKeywordList]' started.
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testRejectsEmptyKeywordList]' passed (4.954 seconds).
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testSilenceProducesNoDetections]' started.
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testSilenceProducesNoDetections]' passed (0.283 seconds).
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testStreamingMatchesBatch]' started.
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testStreamingMatchesBatch]' passed (0.584 seconds).
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testStreamingRealTimeFactor]' started.
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testStreamingRealTimeFactor]' passed (0.553 seconds).
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testWarmup]' started.
+Test Case '-[SpeechWakeWordTests.E2ESpeechWakeWordTests testWarmup]' passed (0.088 seconds).
+Test Suite 'E2ESpeechWakeWordTests' passed at 2026-07-27 09:26:25.946.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 29.300 (29.301) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 09:26:25.946.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 29.300 (29.301) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 09:26:25.946.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 29.300 (29.306) seconds
+E5RT encountered an STL exception. msg = MILCompilerForANE error: failed to compile ANE model using ANEF. Error=_ANECompiler : ANECCompile() FAILED.Swift decoder on ref encoder: ["LIGHT UP"]
+kws_light_up: ["LIGHT UP"]
+kws_lovely_child: ["FOR EVER"]
+E5RT encountered an STL exception. msg = MILCompilerForANE error: failed to compile ANE model using ANEF. Error=_ANECompiler : ANECCompile() FAILED.E5RT encountered an STL exception. msg = MILCompilerForANE error: failed to compile ANE model using ANEF. Error=_ANECompiler : ANECCompile() FAILED.KWS Zipformer RTF=0.090 (avg=28.8ms / 320 ms chunk)
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

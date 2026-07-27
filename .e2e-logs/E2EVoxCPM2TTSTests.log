@@ -1,0 +1,18 @@
+Test Suite 'Selected tests' started at 2026-07-27 09:54:42.309.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 09:54:42.314.
+Test Suite 'E2EVoxCPM2TTSTests' started at 2026-07-27 09:54:42.314.
+Test Case '-[VoxCPM2TTSTests.E2EVoxCPM2TTSTests testBasicSynthesisBF16]' started.
+/Users/ivan/repos/speech-swift-tts-download/Sources/AudioCommon/HuggingFaceDownloader.swift:186: error: -[VoxCPM2TTSTests.E2EVoxCPM2TTSTests testBasicSynthesisBF16] : failed: caught error: "failedToDownload("aufklarer/VoxCPM2-MLX-bf16 after 5 attempts (target: /Users/ivan/Library/Caches/qwen3-speech/models/aufklarer/VoxCPM2-MLX-bf16): Download stalled for aufklarer/VoxCPM2-MLX-bf16: no progress in 300s")"
+Test Case '-[VoxCPM2TTSTests.E2EVoxCPM2TTSTests testBasicSynthesisBF16]' failed (2410.425 seconds).
+Test Case '-[VoxCPM2TTSTests.E2EVoxCPM2TTSTests testBasicSynthesisInt8]' started.
+Test Case '-[VoxCPM2TTSTests.E2EVoxCPM2TTSTests testBasicSynthesisInt8]' passed (272.330 seconds).
+Test Suite 'E2EVoxCPM2TTSTests' failed at 2026-07-27 10:39:25.069.
+	 Executed 2 tests, with 1 failure (1 unexpected) in 2682.755 (2682.755) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' failed at 2026-07-27 10:39:25.069.
+	 Executed 2 tests, with 1 failure (1 unexpected) in 2682.755 (2682.756) seconds
+Test Suite 'Selected tests' failed at 2026-07-27 10:39:25.069.
+	 Executed 2 tests, with 1 failure (1 unexpected) in 2682.755 (2682.760) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

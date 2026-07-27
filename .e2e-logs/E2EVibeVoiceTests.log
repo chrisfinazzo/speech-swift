@@ -1,0 +1,20 @@
+Test Suite 'Selected tests' started at 2026-07-27 09:51:35.061.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 09:51:35.068.
+Test Suite 'E2EVibeVoiceTests' started at 2026-07-27 09:51:35.068.
+Test Case '-[VibeVoiceTTSTests.E2EVibeVoiceTests testGeneratesFromVoiceCacheProducesNonSilentAudio]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/VibeVoiceTTSTests/VibeVoiceTTSTests.swift:271: -[VibeVoiceTTSTests.E2EVibeVoiceTests testGeneratesFromVoiceCacheProducesNonSilentAudio] : Test skipped - set VIBEVOICE_VOICE_CACHE=/path/to/voice.safetensors to run this test (0.5B Realtime cannot encode its own cache — use 1.5B for round-trips)
+Test Case '-[VibeVoiceTTSTests.E2EVibeVoiceTests testGeneratesFromVoiceCacheProducesNonSilentAudio]' skipped (186.488 seconds).
+Test Case '-[VibeVoiceTTSTests.E2EVibeVoiceTests testModelLoadsWithExpectedConfig]' started.
+Test Case '-[VibeVoiceTTSTests.E2EVibeVoiceTests testModelLoadsWithExpectedConfig]' passed (0.000 seconds).
+Test Case '-[VibeVoiceTTSTests.E2EVibeVoiceTests testSampleRateIs24kHz]' started.
+Test Case '-[VibeVoiceTTSTests.E2EVibeVoiceTests testSampleRateIs24kHz]' passed (0.000 seconds).
+Test Suite 'E2EVibeVoiceTests' passed at 2026-07-27 09:54:41.557.
+	 Executed 3 tests, with 1 test skipped and 0 failures (0 unexpected) in 186.489 (186.489) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 09:54:41.557.
+	 Executed 3 tests, with 1 test skipped and 0 failures (0 unexpected) in 186.489 (186.489) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 09:54:41.557.
+	 Executed 3 tests, with 1 test skipped and 0 failures (0 unexpected) in 186.489 (186.496) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

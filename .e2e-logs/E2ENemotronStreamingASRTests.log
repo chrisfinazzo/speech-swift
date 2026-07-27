@@ -1,0 +1,45 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:38:49.907.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:38:49.912.
+Test Suite 'E2ENemotronStreamingASRTests' started at 2026-07-27 08:38:49.912.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testBatchTranscriptionEnglish]' started.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testBatchTranscriptionEnglish]' passed (5.125 seconds).
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testBatchTranscriptionEnglishWithWordBoosting]' started.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testBatchTranscriptionEnglishWithWordBoosting]' passed (1.803 seconds).
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testEnglishOnlyBundleTranscription]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/NemotronStreamingASRTests/NemotronStreamingASRTests.swift:417: -[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testEnglishOnlyBundleTranscription] : Test skipped - English-only bundle not in HF cache
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testEnglishOnlyBundleTranscription]' skipped (0.001 seconds).
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testEnglishOnlyBundleTTSRoundTrip]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/NemotronStreamingASRTests/NemotronStreamingASRTests.swift:467: -[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testEnglishOnlyBundleTTSRoundTrip] : Test skipped - English-only bundle not in HF cache
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testEnglishOnlyBundleTTSRoundTrip]' skipped (0.000 seconds).
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testMemoryManagement]' started.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testMemoryManagement]' passed (2.603 seconds).
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testModelLoading]' started.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testModelLoading]' passed (0.002 seconds).
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testMultilingualLanguageSwitching]' started.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testMultilingualLanguageSwitching]' passed (15.549 seconds).
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testStreamingSessionSilence]' started.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testStreamingSessionSilence]' passed (0.070 seconds).
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testStreamingTranscriptionEnglish]' started.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testStreamingTranscriptionEnglish]' passed (1.455 seconds).
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testWarmup]' started.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testWarmup]' passed (0.088 seconds).
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testWordBoostingActuallyEngagesDecoder]' started.
+Test Case '-[NemotronStreamingASRTests.E2ENemotronStreamingASRTests testWordBoostingActuallyEngagesDecoder]' passed (1.754 seconds).
+Test Suite 'E2ENemotronStreamingASRTests' passed at 2026-07-27 08:39:18.362.
+	 Executed 11 tests, with 2 tests skipped and 0 failures (0 unexpected) in 28.449 (28.450) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:39:18.362.
+	 Executed 11 tests, with 2 tests skipped and 0 failures (0 unexpected) in 28.449 (28.450) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:39:18.362.
+	 Executed 11 tests, with 2 tests skipped and 0 failures (0 unexpected) in 28.449 (28.455) seconds
+Batch en-US: Can you guarantee that the replacement part will be shipped tomorrow
+Batch en-US boosted: Can you guarantee that the replacement part will be shipped tomorrow
+Output rank has increased after reshaping espresso network for blob = encoder_hidden_states_classic_cpu and upper dims are not 1 @ ReshapeOperationInternalOutput rank has increased after reshaping espresso network for blob = encoder_hidden_states_classic_cpu and upper dims are not 1 @ ReshapeOperationInternalen-US: "The quick brown fox jumps over the lazy dog"
+de-DE: "The quick brown fox jumps over the lazy dog"
+fr-FR: "The quick brown fox jumps over the lazy dog"
+ja-JP: ""
+Streamed en-US final: Can you guarantee that the replacement part will be shipped tomorrow
+[boost-engaged] changedDecisions=2 text=Can you guaranteed that the replacement parts will be shipped tomorrow
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

@@ -1,0 +1,24 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:22:49.219.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:22:49.223.
+Test Suite 'E2EMagpieCoreMLTests' started at 2026-07-27 08:22:49.223.
+Test Case '-[MagpieTTSCoreMLTests.E2EMagpieCoreMLTests testAsrTranscribeCapturedMagpieAudio]' started.
+Loaded 62 added tokens from tokenizer_config.json
+Loaded tokenizer with 151705 tokens, 151291 merges
+Test Case '-[MagpieTTSCoreMLTests.E2EMagpieCoreMLTests testAsrTranscribeCapturedMagpieAudio]' passed (139.007 seconds).
+Test Case '-[MagpieTTSCoreMLTests.E2EMagpieCoreMLTests testLoadAndSynthesizeEnglish]' started.
+Test Case '-[MagpieTTSCoreMLTests.E2EMagpieCoreMLTests testLoadAndSynthesizeEnglish]' passed (151.287 seconds).
+Test Suite 'E2EMagpieCoreMLTests' passed at 2026-07-27 08:27:39.518.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 290.295 (290.295) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:27:39.518.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 290.295 (290.295) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:27:39.518.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 290.295 (290.300) seconds
+[MAGPIE-COREML-ASR] raw="Hello, world! From magpie text to speech."  normalised="hello world from magpie text to speech"
+  download: 100%
+  download: 100%
+  download: 100%
+E2E OK: 23552 samples, peak=0.369218, duration=1.0681179138321995s
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

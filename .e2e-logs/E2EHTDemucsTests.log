@@ -1,0 +1,31 @@
+Test Suite 'Selected tests' started at 2026-07-27 09:21:21.185.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 09:21:21.190.
+Test Suite 'E2EHTDemucsTests' started at 2026-07-27 09:21:21.190.
+Test Case '-[SourceSeparationTests.E2EHTDemucsTests testExportInt8Artifact]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/SourceSeparationTests/E2EHTDemucsTests.swift:136: -[SourceSeparationTests.E2EHTDemucsTests testExportInt8Artifact] : Test skipped - set HTDEMUCS_INT8_OUT=<dir> to export the int8 bundle
+Test Case '-[SourceSeparationTests.E2EHTDemucsTests testExportInt8Artifact]' skipped (0.001 seconds).
+Test Case '-[SourceSeparationTests.E2EHTDemucsTests testForwardShape]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/SourceSeparationTests/E2EHTDemucsTests.swift:18: -[SourceSeparationTests.E2EHTDemucsTests testForwardShape] : Test skipped - htdemucs_ft weights not exported at /Users/ivan/repos/speech-models-htdemucs/models/htdemucs/export/htdemucs-ft/htdemucs_ft.safetensors
+Test Case '-[SourceSeparationTests.E2EHTDemucsTests testForwardShape]' skipped (0.001 seconds).
+Test Case '-[SourceSeparationTests.E2EHTDemucsTests testInt8BundleRoundTrip]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/SourceSeparationTests/E2EHTDemucsTests.swift:100: -[SourceSeparationTests.E2EHTDemucsTests testInt8BundleRoundTrip] : Test skipped - fp32 weights or parity_m0.safetensors not present
+Test Case '-[SourceSeparationTests.E2EHTDemucsTests testInt8BundleRoundTrip]' skipped (0.000 seconds).
+Test Case '-[SourceSeparationTests.E2EHTDemucsTests testInt8QuantizationParity]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/SourceSeparationTests/E2EHTDemucsTests.swift:71: -[SourceSeparationTests.E2EHTDemucsTests testInt8QuantizationParity] : Test skipped - fp32 weights or parity_m0.safetensors not present
+Test Case '-[SourceSeparationTests.E2EHTDemucsTests testInt8QuantizationParity]' skipped (0.000 seconds).
+Test Case '-[SourceSeparationTests.E2EHTDemucsTests testLoadAllSubModels]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/SourceSeparationTests/E2EHTDemucsTests.swift:18: -[SourceSeparationTests.E2EHTDemucsTests testLoadAllSubModels] : Test skipped - htdemucs_ft weights not exported at /Users/ivan/repos/speech-models-htdemucs/models/htdemucs/export/htdemucs-ft/htdemucs_ft.safetensors
+Test Case '-[SourceSeparationTests.E2EHTDemucsTests testLoadAllSubModels]' skipped (0.000 seconds).
+Test Case '-[SourceSeparationTests.E2EHTDemucsTests testNumericalParityModel0]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/SourceSeparationTests/E2EHTDemucsTests.swift:46: -[SourceSeparationTests.E2EHTDemucsTests testNumericalParityModel0] : Test skipped - fp32 weights or parity_m0.safetensors not present
+Test Case '-[SourceSeparationTests.E2EHTDemucsTests testNumericalParityModel0]' skipped (0.000 seconds).
+Test Suite 'E2EHTDemucsTests' passed at 2026-07-27 09:21:21.192.
+	 Executed 6 tests, with 6 tests skipped and 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 09:21:21.192.
+	 Executed 6 tests, with 6 tests skipped and 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 09:21:21.192.
+	 Executed 6 tests, with 6 tests skipped and 0 failures (0 unexpected) in 0.002 (0.007) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

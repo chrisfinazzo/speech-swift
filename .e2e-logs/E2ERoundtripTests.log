@@ -1,0 +1,22 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:02:22.658.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:02:22.664.
+Test Suite 'E2ERoundtripTests' started at 2026-07-27 08:02:22.665.
+Test Case '-[ChatterboxTTSTests.E2ERoundtripTests testCloneConditioningPipeline]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/ChatterboxTTSTests/RoundtripE2ETests.swift:28: -[ChatterboxTTSTests.E2ERoundtripTests testCloneConditioningPipeline] : Test skipped - golden /tmp/cbx_ve.safetensors not present; run /tmp/cbx_ve_golden.py
+Test Case '-[ChatterboxTTSTests.E2ERoundtripTests testCloneConditioningPipeline]' skipped (0.001 seconds).
+Test Case '-[ChatterboxTTSTests.E2ERoundtripTests testFullSynthesisRoundtrip]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/ChatterboxTTSTests/RoundtripE2ETests.swift:53: -[ChatterboxTTSTests.E2ERoundtripTests testFullSynthesisRoundtrip] : Test skipped - missing /tmp/cbx-fp16/model.safetensors; run /tmp/cbx_s3gen_golden.py
+Test Case '-[ChatterboxTTSTests.E2ERoundtripTests testFullSynthesisRoundtrip]' skipped (0.000 seconds).
+Test Case '-[ChatterboxTTSTests.E2ERoundtripTests testMultilingualSynthesis]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/ChatterboxTTSTests/RoundtripE2ETests.swift:89: -[ChatterboxTTSTests.E2ERoundtripTests testMultilingualSynthesis] : Test skipped - missing /tmp/cbx-fp16/model.safetensors; run /tmp/cbx_s3gen_golden.py
+Test Case '-[ChatterboxTTSTests.E2ERoundtripTests testMultilingualSynthesis]' skipped (0.000 seconds).
+Test Suite 'E2ERoundtripTests' passed at 2026-07-27 08:02:22.667.
+	 Executed 3 tests, with 3 tests skipped and 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:02:22.667.
+	 Executed 3 tests, with 3 tests skipped and 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:02:22.667.
+	 Executed 3 tests, with 3 tests skipped and 0 failures (0 unexpected) in 0.002 (0.009) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

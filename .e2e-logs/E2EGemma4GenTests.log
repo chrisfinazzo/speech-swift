@@ -1,0 +1,22 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:55:27.018.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:55:27.023.
+Test Suite 'E2EGemma4GenTests' started at 2026-07-27 08:55:27.023.
+Test Case '-[Qwen3ChatTests.E2EGemma4GenTests testAnswerFilterSuppressesThoughtChannel]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/Qwen3ChatTests/E2EGemma4GenTests.swift:55: -[Qwen3ChatTests.E2EGemma4GenTests testAnswerFilterSuppressesThoughtChannel] : Test skipped - Gemma 4 tokenizer unavailable: /Users/ivan/repos/runner-speech-models/speech-models/out/mlx/gemma-4-E2B-it-MLX-4bit
+Test Case '-[Qwen3ChatTests.E2EGemma4GenTests testAnswerFilterSuppressesThoughtChannel]' skipped (0.001 seconds).
+Test Case '-[Qwen3ChatTests.E2EGemma4GenTests testCacheFirstTokenMatchesSingleForward]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/Qwen3ChatTests/E2EGemma4GenTests.swift:90: -[Qwen3ChatTests.E2EGemma4GenTests testCacheFirstTokenMatchesSingleForward] : Test skipped - Gemma 4 model dir unavailable: /Users/ivan/repos/runner-speech-models/speech-models/out/mlx/gemma-4-E2B-it-MLX-4bit
+Test Case '-[Qwen3ChatTests.E2EGemma4GenTests testCacheFirstTokenMatchesSingleForward]' skipped (0.000 seconds).
+Test Case '-[Qwen3ChatTests.E2EGemma4GenTests testStreamingReplyAboutParis]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/Qwen3ChatTests/E2EGemma4GenTests.swift:20: -[Qwen3ChatTests.E2EGemma4GenTests testStreamingReplyAboutParis] : Test skipped - Gemma 4 model dir unavailable: /Users/ivan/repos/runner-speech-models/speech-models/out/mlx/gemma-4-E2B-it-MLX-4bit
+Test Case '-[Qwen3ChatTests.E2EGemma4GenTests testStreamingReplyAboutParis]' skipped (0.000 seconds).
+Test Suite 'E2EGemma4GenTests' passed at 2026-07-27 08:55:27.024.
+	 Executed 3 tests, with 3 tests skipped and 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:55:27.024.
+	 Executed 3 tests, with 3 tests skipped and 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:55:27.024.
+	 Executed 3 tests, with 3 tests skipped and 0 failures (0 unexpected) in 0.001 (0.006) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

@@ -1,0 +1,22 @@
+Test Suite 'Selected tests' started at 2026-07-27 09:34:55.387.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 09:34:55.392.
+Test Suite 'E2EVibeVoice1_5BTests' started at 2026-07-27 09:34:55.392.
+Test Case '-[VibeVoiceTTSTests.E2EVibeVoice1_5BTests testChineseRoundTrip]' started.
+Test Case '-[VibeVoiceTTSTests.E2EVibeVoice1_5BTests testChineseRoundTrip]' passed (783.181 seconds).
+Test Case '-[VibeVoiceTTSTests.E2EVibeVoice1_5BTests testEnglishRoundTripASR]' started.
+Test Case '-[VibeVoiceTTSTests.E2EVibeVoice1_5BTests testEnglishRoundTripASR]' passed (209.745 seconds).
+Test Case '-[VibeVoiceTTSTests.E2EVibeVoice1_5BTests testEnglishRoundTripSmoke]' started.
+Test Case '-[VibeVoiceTTSTests.E2EVibeVoice1_5BTests testEnglishRoundTripSmoke]' passed (5.543 seconds).
+Test Case '-[VibeVoiceTTSTests.E2EVibeVoice1_5BTests testModelHasSemanticTokenizer]' started.
+Test Case '-[VibeVoiceTTSTests.E2EVibeVoice1_5BTests testModelHasSemanticTokenizer]' passed (0.003 seconds).
+Test Suite 'E2EVibeVoice1_5BTests' passed at 2026-07-27 09:51:33.864.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 998.471 (998.472) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 09:51:33.864.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 998.471 (998.472) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 09:51:33.864.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 998.471 (998.476) seconds
+[E2EVibeVoice1.5B ASR] generated transcript: hello world, this is the one point five billion vyvoice variant of the microsoft text to speech model
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

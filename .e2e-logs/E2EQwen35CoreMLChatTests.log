@@ -1,0 +1,37 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:55:28.559.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:55:28.563.
+Test Suite 'E2EQwen35CoreMLChatTests' started at 2026-07-27 08:55:28.563.
+Test Case '-[Qwen3ChatTests.E2EQwen35CoreMLChatTests testHubFromPretrained]' started.
+Test Case '-[Qwen3ChatTests.E2EQwen35CoreMLChatTests testHubFromPretrained]' passed (111.635 seconds).
+Test Case '-[Qwen3ChatTests.E2EQwen35CoreMLChatTests testLocalModelGeneration]' started.
+Test Case '-[Qwen3ChatTests.E2EQwen35CoreMLChatTests testLocalModelGeneration]' passed (0.000 seconds).
+Test Case '-[Qwen3ChatTests.E2EQwen35CoreMLChatTests testNoMetaCommentary]' started.
+Test Case '-[Qwen3ChatTests.E2EQwen35CoreMLChatTests testNoMetaCommentary]' passed (0.000 seconds).
+Test Suite 'E2EQwen35CoreMLChatTests' passed at 2026-07-27 08:57:20.199.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 111.636 (111.636) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:57:20.199.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 111.636 (111.636) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:57:20.199.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 111.636 (111.641) seconds
+[CoreML] pos=1 logits shape=[1, 1, 248320] dtype=65552 count=248320
+[CoreML] pos=2 logits shape=[1, 1, 248320] dtype=65552 count=248320
+[CoreML] pos=3 logits shape=[1, 1, 248320] dtype=65552 count=248320
+[CoreML] token[0]: 271 '
+
+'
+[CoreML] token[1]: 623 'In'
+[CoreML] token[2]: 411 ' this'
+[CoreML] token[3]: 2193 ' context'
+[CoreML] token[4]: 11 ','
+[CoreML] token[5]: 328 ' "'
+[CoreML] token[6]: 20390 'reply'
+[CoreML] token[7]: 1 '"'
+[CoreML] token[8]: 369 ' is'
+[CoreML] token[9]: 264 ' a'
+Hub fromPretrained response: 'In this context, "reply" is a'
+No compiled CoreML model at /tmp/Qwen3.5-CoreML-INT8/decoder.mlmodelc, skipping
+No compiled CoreML model, skipping
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

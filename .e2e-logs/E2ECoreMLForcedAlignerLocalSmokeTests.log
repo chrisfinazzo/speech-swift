@@ -1,0 +1,16 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:48:56.785.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:48:56.791.
+Test Suite 'E2ECoreMLForcedAlignerLocalSmokeTests' started at 2026-07-27 08:48:56.791.
+Test Case '-[Qwen3ASRTests.E2ECoreMLForcedAlignerLocalSmokeTests testLocalAlignerProducesFiniteMonotonicWords]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/Qwen3ASRTests/E2ECoreMLForcedAlignerLocalSmokeTests.swift:21: -[Qwen3ASRTests.E2ECoreMLForcedAlignerLocalSmokeTests testLocalAlignerProducesFiniteMonotonicWords] : Test skipped - Set ALIGNER_COREML_LOCAL_DIR to a converter output directory
+Test Case '-[Qwen3ASRTests.E2ECoreMLForcedAlignerLocalSmokeTests testLocalAlignerProducesFiniteMonotonicWords]' skipped (0.001 seconds).
+Test Suite 'E2ECoreMLForcedAlignerLocalSmokeTests' passed at 2026-07-27 08:48:56.793.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 08:48:56.793.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 08:48:56.793.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.007) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

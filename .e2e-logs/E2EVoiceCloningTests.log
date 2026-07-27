@@ -1,0 +1,77 @@
+Test Suite 'Selected tests' started at 2026-07-27 09:21:06.412.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 09:21:06.417.
+Test Suite 'E2EVoiceCloningTests' started at 2026-07-27 09:21:06.417.
+Test Case '-[Qwen3TTSTests.E2EVoiceCloningTests testSpeakerEmbeddingConsistency]' started.
+Loaded 33 added tokens from tokenizer_config.json
+Loaded tokenizer with 151676 tokens, 151291 merges
+Loaded 480 weights from safetensors
+Found 316 talker weights
+Applied weights to Talker (28 layers)
+Found 88 code predictor weights
+Applied weights to Code Predictor (5 layers)
+Found 76 speaker encoder weights
+Applied weights to Speaker Encoder
+Found 496 speech tokenizer weights total
+Applied weights to Speech Tokenizer Decoder
+Test Case '-[Qwen3TTSTests.E2EVoiceCloningTests testSpeakerEmbeddingConsistency]' passed (1.161 seconds).
+Test Case '-[Qwen3TTSTests.E2EVoiceCloningTests testSpeakerEmbeddingExtraction]' started.
+Test Case '-[Qwen3TTSTests.E2EVoiceCloningTests testSpeakerEmbeddingExtraction]' passed (0.299 seconds).
+Test Case '-[Qwen3TTSTests.E2EVoiceCloningTests testVoiceCloneRoundTrip]' started.
+Loaded 62 added tokens from tokenizer_config.json
+Loaded tokenizer with 151705 tokens, 151291 merges
+Test Case '-[Qwen3TTSTests.E2EVoiceCloningTests testVoiceCloneRoundTrip]' passed (6.332 seconds).
+Test Case '-[Qwen3TTSTests.E2EVoiceCloningTests testVoiceCloneSynthesis]' started.
+Test Case '-[Qwen3TTSTests.E2EVoiceCloningTests testVoiceCloneSynthesis]' passed (2.618 seconds).
+Test Case '-[Qwen3TTSTests.E2EVoiceCloningTests testVoiceCloneVsNormal]' started.
+Test Case '-[Qwen3TTSTests.E2EVoiceCloningTests testVoiceCloneVsNormal]' passed (3.507 seconds).
+Test Suite 'E2EVoiceCloningTests' passed at 2026-07-27 09:21:20.334.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 13.917 (13.917) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 09:21:20.334.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 13.917 (13.917) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 09:21:20.334.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 13.917 (13.922) seconds
+Loading TTS model...
+[TTS 5%] Preparing download...
+[TTS 60%] Loading tokenizer...
+[TTS 70%] Loading TTS model weights...
+[TTS 85%] Loading speech tokenizer decoder...
+[TTS 95%] Warming up model...
+[TTS 100%] Ready
+Speaker embedding norm: 20.597889
+Loading ASR model...
+[ASR 0%] Downloading model...
+[ASR 80%] Downloading weights...
+[ASR 80%] Loading tokenizer...
+[ASR 85%] Loading audio encoder weights...
+Found 1 safetensor files
+Loading: model.safetensors
+Applied weights to audio encoder (18 layers, 301 tensors)
+[ASR 92%] Loading text decoder weights...
+Applied weights to text decoder (28 layers, 704 tensors)
+[ASR 100%] Ready
+  Speaker embedding extracted: [1, 2048]
+  Talker done: 27 codec tokens (~2.2s audio)
+  Decoding 27 frames -> 51840 samples (2.2s)...
+  Voice clone timing: embed=0.333s | generate=3.356s (27 steps, 124ms/step) | decode=0.052s | total=3.740s | audio=2.04s | RTF=1.83
+  ASR: 0.12s
+Input:  "Hello world, this is a test."
+Output: "Hello world. This is a test."
+Matched 3/3 words: ["hello", "world", "test"]
+  Speaker embedding: cache hit [1, 2048]
+  Talker done: 21 codec tokens (~1.7s audio)
+  Decoding 21 frames -> 40320 samples (1.7s)...
+  Voice clone timing: embed=0.024s | generate=2.541s (21 steps, 121ms/step) | decode=0.048s | total=2.613s | audio=1.56s | RTF=1.68
+Voice clone: 1.56s audio in 2.61s (RTF: 1.68)
+  Talker done: 23 codec tokens (~1.8s audio)
+  Decoding 23 frames -> 44160 samples (1.8s)...
+  Timing: embed=0.001s | generate=1.059s (23 steps, 46ms/step) | decode=0.046s | total=1.107s | audio=1.72s | RTF=0.64
+  Speaker embedding: cache hit [1, 2048]
+  Talker done: 19 codec tokens (~1.5s audio)
+  Decoding 19 frames -> 36480 samples (1.5s)...
+  Voice clone timing: embed=0.024s | generate=2.323s (19 steps, 122ms/step) | decode=0.045s | total=2.392s | audio=1.40s | RTF=1.71
+Normal: 41280 samples (1.72s)
+Cloned: 33600 samples (1.40s)
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

@@ -1,0 +1,126 @@
+Test Suite 'Selected tests' started at 2026-07-27 08:58:16.040.
+Test Suite 'Qwen3SpeechPackageTests.xctest' started at 2026-07-27 08:58:16.044.
+Test Suite 'E2EQwen3TTSCoreMLBenchmarkTests' started at 2026-07-27 08:58:16.044.
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLBenchmarkTests testBenchmarkLong]' started.
+Loaded tokenizer with 151643 tokens, 151291 merges
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLBenchmarkTests testBenchmarkLong]' passed (220.608 seconds).
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLBenchmarkTests testBenchmarkMedium]' started.
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLBenchmarkTests testBenchmarkMedium]' passed (23.597 seconds).
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLBenchmarkTests testBenchmarkShort]' started.
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLBenchmarkTests testBenchmarkShort]' passed (10.935 seconds).
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLBenchmarkTests testRoundtripIntelligibility]' started.
+Loaded 62 added tokens from tokenizer_config.json
+Loaded tokenizer with 151705 tokens, 151291 merges
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLBenchmarkTests testRoundtripIntelligibility]' passed (20.767 seconds).
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLBenchmarkTests testSaveBenchmarkAudio]' started.
+/Users/ivan/repos/speech-swift-tts-download/Tests/Qwen3TTSCoreMLTests/E2EQwen3TTSCoreMLBenchmarkTests.swift:121: -[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLBenchmarkTests testSaveBenchmarkAudio] : Test skipped - set QWEN3TTS_BENCH_WAV=/path/to/out.wav to save
+Test Case '-[Qwen3TTSCoreMLTests.E2EQwen3TTSCoreMLBenchmarkTests testSaveBenchmarkAudio]' skipped (0.001 seconds).
+Test Suite 'E2EQwen3TTSCoreMLBenchmarkTests' passed at 2026-07-27 09:02:51.953.
+	 Executed 5 tests, with 1 test skipped and 0 failures (0 unexpected) in 275.908 (275.909) seconds
+Test Suite 'Qwen3SpeechPackageTests.xctest' passed at 2026-07-27 09:02:51.953.
+	 Executed 5 tests, with 1 test skipped and 0 failures (0 unexpected) in 275.908 (275.909) seconds
+Test Suite 'Selected tests' passed at 2026-07-27 09:02:51.953.
+	 Executed 5 tests, with 1 test skipped and 0 failures (0 unexpected) in 275.908 (275.913) seconds
+
+[BENCH Qwen3TTSCoreML]
+  text                = "Warm up."
+  audio output        =  1.280s
+  wall total          =  3.989s   RTFx = 0.32
+  prompt build        =  0.016s
+  CD prefill          =  0.531s  (14 calls)
+  CD decode           =  0.544s  (16 calls, 34.0ms/call)
+  MCD predict (outer) =  1.943s  (16 calls, 121.4ms/call)
+  MCD inner CoreML    = 256 calls, 7.6ms/call
+  embedder sum loop   =  0.140s
+  SpeechDecoder       =  0.752s
+  accounted           =  3.926s
+
+[BENCH Qwen3TTSCoreML]
+  text                = "Coreml on the Apple Neural Engine is fast for vocoders but the autoregressive decoder loop pays per call dispatch overhead."
+  audio output        = 10.000s
+  wall total          = 18.543s   RTFx = 0.54
+  prompt build        =  0.023s
+  CD prefill          =  1.210s  (36 calls)
+  CD decode           =  4.131s  (124 calls, 33.3ms/call)
+  MCD predict (outer) = 11.301s  (125 calls, 90.4ms/call)
+  MCD inner CoreML    = 2000 calls, 5.7ms/call
+  embedder sum loop   =  1.096s
+  SpeechDecoder       =  0.720s
+  accounted           = 18.482s
+
+[BENCH Qwen3TTSCoreML]
+  text                = "Warm up."
+  audio output        =  1.840s
+  wall total          =  5.122s   RTFx = 0.36
+  prompt build        =  0.008s
+  CD prefill          =  0.469s  (14 calls)
+  CD decode           =  0.772s  (23 calls, 33.6ms/call)
+  MCD predict (outer) =  2.854s  (23 calls, 124.1ms/call)
+  MCD inner CoreML    = 368 calls, 7.8ms/call
+  embedder sum loop   =  0.215s
+  SpeechDecoder       =  0.718s
+  accounted           =  5.036s
+
+[BENCH Qwen3TTSCoreML]
+  text                = "The quick brown fox jumps over the lazy dog."
+  audio output        = 10.000s
+  wall total          = 18.428s   RTFx = 0.54
+  prompt build        =  0.013s
+  CD prefill          =  0.703s  (21 calls)
+  CD decode           =  4.195s  (124 calls, 33.8ms/call)
+  MCD predict (outer) = 11.587s  (125 calls, 92.7ms/call)
+  MCD inner CoreML    = 2000 calls, 5.8ms/call
+  embedder sum loop   =  1.128s
+  SpeechDecoder       =  0.738s
+  accounted           = 18.365s
+
+[BENCH Qwen3TTSCoreML]
+  text                = "Warm up."
+  audio output        =  2.000s
+  wall total          =  5.806s   RTFx = 0.34
+  prompt build        =  0.009s
+  CD prefill          =  0.511s  (14 calls)
+  CD decode           =  0.835s  (24 calls, 34.8ms/call)
+  MCD predict (outer) =  3.392s  (25 calls, 135.7ms/call)
+  MCD inner CoreML    = 400 calls, 8.5ms/call
+  embedder sum loop   =  0.238s
+  SpeechDecoder       =  0.729s
+  accounted           =  5.715s
+
+[BENCH Qwen3TTSCoreML]
+  text                = "Hello world."
+  audio output        =  2.240s
+  wall total          =  5.112s   RTFx = 0.44
+  prompt build        =  0.009s
+  CD prefill          =  0.482s  (14 calls)
+  CD decode           =  0.946s  (28 calls, 33.8ms/call)
+  MCD predict (outer) =  2.681s  (28 calls, 95.8ms/call)
+  MCD inner CoreML    = 448 calls, 6.0ms/call
+  embedder sum loop   =  0.255s
+  SpeechDecoder       =  0.725s
+  accounted           =  5.097s
+Found 1 safetensor files
+Loading: model.safetensors
+Applied weights to audio encoder (18 layers, 301 tensors)
+Applied weights to text decoder (28 layers, 704 tensors)
+
+[BENCH Qwen3TTSCoreML]
+  text                = "The quick brown fox jumps over the lazy dog."
+  audio output        = 10.000s
+  wall total          = 18.476s   RTFx = 0.54
+  prompt build        =  0.013s
+  CD prefill          =  0.713s  (21 calls)
+  CD decode           =  4.149s  (124 calls, 33.5ms/call)
+  MCD predict (outer) = 11.652s  (125 calls, 93.2ms/call)
+  MCD inner CoreML    = 2000 calls, 5.8ms/call
+  embedder sum loop   =  1.138s
+  SpeechDecoder       =  0.746s
+  accounted           = 18.412s
+
+[ROUNDTRIP] input:  "The quick brown fox jumps over the lazy dog."
+[ROUNDTRIP] output: "The quick brown fox jumps over the lazy."
+[ROUNDTRIP] matched 5/6: ["quick", "brown", "fox", "jumps", "lazy"]
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.
