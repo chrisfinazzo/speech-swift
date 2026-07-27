@@ -57,5 +57,5 @@ benchmark-results/
 *.xcodeproj/project.pbxproj
 .DS_Store
 .claude/scheduled_tasks.lock
-.idea/
+/.idea/*
 .e2e-logs/
