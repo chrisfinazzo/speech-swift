@@ -686,13 +686,3 @@ public enum HuggingFaceDownloader {
         return root.appendingPathComponent(cacheDirName, isDirectory: true)
     }
 }
-
-extension HuggingFaceDownloader {
-    /// List the files a model repository ships.
-    ///
-    /// Retained for callers that need names before deciding what to fetch;
-    /// `fetchManifest` is the richer form and carries sizes and digests too.
-    public static func listRepoFiles(modelId: String) async throws -> [String] {
-        try await fetchManifest(modelId: modelId).files.map(\.path)
-    }
-}
