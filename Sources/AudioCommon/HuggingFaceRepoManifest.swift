@@ -222,6 +222,88 @@ extension HuggingFaceDownloader {
         }
     }
 
+    static let consolidatedWeightsName = "model.safetensors"
+
+    /// Delete a consolidated weights file left behind by an earlier over-fetch.
+    ///
+    /// Selecting weights from the shard index stops *new* caches acquiring the
+    /// duplicate, but does nothing for caches that already have it — and the
+    /// cost there is not just disk. `CommonWeightLoader.loadAllSafetensors`
+    /// merges every `.safetensors` in the directory, so a cache holding both
+    /// the shards and the consolidated copy reads and allocates the same
+    /// tensors twice on every load.
+    ///
+    /// The check is deliberately narrow, because "delete weight files the index
+    /// doesn't name" would be wrong: repositories legitimately ship extra
+    /// weights beside a sharded model — Fish Audio's `codec.safetensors` sits
+    /// next to an index naming only the model shards, and removing it would
+    /// break loading. So only the exact name `model.safetensors` is ever
+    /// considered, only when the index omits it, only when at least one shard
+    /// is actually present, and only once its header proves every tensor it
+    /// holds is also named by the index. Anything unproven is left alone.
+    static func removeRedundantConsolidatedWeights(in directory: URL, indexData: Data) {
+        guard let json = try? JSONSerialization.jsonObject(with: indexData) as? [String: Any],
+              let weightMap = json["weight_map"] as? [String: String]
+        else { return }
+
+        let shards = Set(weightMap.values)
+        guard !shards.isEmpty, !shards.contains(consolidatedWeightsName) else { return }
+
+        let fm = FileManager.default
+        let candidate = directory.appendingPathComponent(consolidatedWeightsName)
+        guard fm.fileExists(atPath: candidate.path) else { return }
+
+        // Never remove the only weights present.
+        guard shards.allSatisfy({ fm.fileExists(atPath: directory.appendingPathComponent($0).path) })
+        else { return }
+
+        guard let tensors = safetensorsTensorNames(at: candidate),
+              !tensors.isEmpty,
+              tensors.isSubset(of: Set(weightMap.keys))
+        else {
+            AudioLog.download.debug(
+                "Leaving \(consolidatedWeightsName) in \(directory.path): not provably redundant")
+            return
+        }
+
+        do {
+            try fm.removeItem(at: candidate)
+            AudioLog.download.notice(
+                "Removed redundant \(consolidatedWeightsName, privacy: .public) from \(directory.path, privacy: .public): its tensors are all supplied by the indexed shards")
+        } catch {
+            AudioLog.download.debug("Could not remove \(candidate.path): \(error)")
+        }
+    }
+
+    /// Tensor names declared in a safetensors header, or `nil` if unreadable.
+    ///
+    /// The format is a little-endian `UInt64` header length followed by that
+    /// many bytes of JSON mapping tensor name to dtype/shape/offsets, so the
+    /// names can be read without touching the tensor data.
+    static func safetensorsTensorNames(at url: URL) -> Set<String>? {
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return nil }
+        defer { try? handle.close() }
+
+        guard let lengthBytes = try? handle.read(upToCount: 8), lengthBytes.count == 8 else {
+            return nil
+        }
+        let headerLength = UInt64(littleEndian: lengthBytes.withUnsafeBytes {
+            $0.loadUnaligned(as: UInt64.self)
+        })
+        guard headerLength > 0, headerLength <= maxSafetensorsHeaderBytes else { return nil }
+
+        guard let headerBytes = try? handle.read(upToCount: Int(headerLength)),
+              headerBytes.count == Int(headerLength),
+              let header = try? JSONSerialization.jsonObject(with: headerBytes) as? [String: Any]
+        else { return nil }
+
+        return Set(header.keys.filter { $0 != "__metadata__" })
+    }
+
+    /// Sanity bound on the header length read from an untrusted file, so a
+    /// corrupt value can't make us allocate arbitrarily.
+    static let maxSafetensorsHeaderBytes: UInt64 = 128 * 1_024 * 1_024
+
     /// Fetch and parse the shard index, returning `nil` when the repo has none
     /// or it can't be read. A missing index is the normal single-file case, not
     /// an error.

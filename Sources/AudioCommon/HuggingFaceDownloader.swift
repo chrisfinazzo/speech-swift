@@ -11,6 +11,10 @@ public enum DownloadError: Error, LocalizedError {
     case stalled(modelId: String, seconds: Int)
     /// Downloaded bytes did not match the digest the Hub published for them.
     case checksumMismatch(file: String, expected: String, actual: String)
+    /// Every attempt failed for a reason that looks like the network being
+    /// unreachable, rather than the repository being wrong. Distinguished from
+    /// `failedToDownload` so a complete cache can still be used.
+    case networkUnavailable(modelId: String, detail: String)
 
     public var errorDescription: String? {
         switch self {
@@ -22,6 +26,8 @@ public enum DownloadError: Error, LocalizedError {
             return "Download stalled for \(modelId): no progress in \(seconds)s"
         case .checksumMismatch(let file, let expected, let actual):
             return "Checksum mismatch for \(file): expected \(expected), got \(actual)"
+        case .networkUnavailable(let modelId, let detail):
+            return "Network unavailable while fetching \(modelId): \(detail)"
         }
     }
 }
@@ -161,27 +167,58 @@ public enum HuggingFaceDownloader {
             return patterns
         }()
 
-        // Note: a resolution failure is *not* softened into "use whatever is
-        // cached". A missing repo and a dead network are indistinguishable
-        // here without inspecting the error chain, and silently accepting a
-        // stale or partial cache is how an unrelated load failure gets
-        // attributed to the wrong thing. Callers that want cache-only
-        // behaviour ask for it with `offlineMode: true`.
-        try await performDownload(
-            modelId: modelId,
-            directory: directory,
-            retryDelaysSeconds: retryDelaysSeconds,
-            progressHandler: { fraction, _, _, _ in progressHandler?(fraction) }
-        ) {
-            let manifest = try await fetchManifest(modelId: modelId)
-            var selection = manifest.matching(globs: globs)
-            // Globbing is discovery, so it needs narrowing when a repo
-            // publishes the same tensors twice — see `applyingShardIndex`.
-            if let indexData = await fetchShardIndex(modelId: modelId, manifest: manifest) {
-                selection = applyingShardIndex(to: selection, indexData: indexData)
+        do {
+            try await performDownload(
+                modelId: modelId,
+                directory: directory,
+                retryDelaysSeconds: retryDelaysSeconds,
+                progressHandler: { fraction, _, _, _ in progressHandler?(fraction) }
+            ) {
+                let manifest = try await fetchManifest(modelId: modelId)
+                var selection = manifest.matching(globs: globs)
+                // Globbing is discovery, so it needs narrowing when a repo
+                // publishes the same tensors twice — see `applyingShardIndex`.
+                if let indexData = await fetchShardIndex(modelId: modelId, manifest: manifest) {
+                    selection = applyingShardIndex(to: selection, indexData: indexData)
+                }
+                return selection
             }
-            return selection
+        } catch let error as DownloadError {
+            // The Hub was unreachable. If everything this call would have
+            // fetched is already on disk, the model can still load — a network
+            // blip should not fail a load that needs no bytes. Anything else
+            // (a 404, a checksum failure) is a real answer and propagates.
+            guard case .networkUnavailable = error,
+                  cachedBundleSatisfies(globs: globs, in: directory)
+            else { throw error }
+            AudioLog.download.warning(
+                "\(modelId, privacy: .public): Hub unreachable, using the complete cache in \(directory.path, privacy: .public)")
+            progressHandler?(1.0)
+            return
         }
+
+        // Caches populated before weight selection consulted the index may hold
+        // a consolidated copy of the shards, which the loader would read on top
+        // of them. Cleaning up after the fact is the only way those caches ever
+        // stop paying for it.
+        if let indexData = try? Data(
+            contentsOf: directory.appendingPathComponent(safetensorsIndexName)) {
+            removeRedundantConsolidatedWeights(in: directory, indexData: indexData)
+        }
+    }
+
+    /// Whether the cache holds everything a `downloadWeights` call asked for.
+    ///
+    /// Stricter than `weightsExist` alone, which only answers "are there any
+    /// weights here" — a cache with weights but no tokenizer would pass that
+    /// and then fail at load, blaming the wrong thing. The weight globs are
+    /// checked by `weightsExist` (which also verifies every shard an index
+    /// names); the caller's own patterns are checked literally.
+    static func cachedBundleSatisfies(globs: [String], in directory: URL) -> Bool {
+        guard weightsExist(in: directory) else { return false }
+        let discoveryPatterns: Set<String> = ["*.safetensors", safetensorsIndexName]
+        let callerPatterns = globs.filter { !discoveryPatterns.contains($0) }
+        return firstUnsatisfiedPattern(callerPatterns, in: directory) == nil
     }
 
     /// Download a list of files without adding any implicit weight globs.
@@ -217,13 +254,23 @@ public enum HuggingFaceDownloader {
             return
         }
 
-        try await performDownload(
-            modelId: modelId,
-            directory: directory,
-            retryDelaysSeconds: retryDelaysSeconds,
-            progressHandler: { fraction, _, _, _ in progressHandler?(fraction) }
-        ) {
-            try await fetchManifest(modelId: modelId).matching(globs: files)
+        do {
+            try await performDownload(
+                modelId: modelId,
+                directory: directory,
+                retryDelaysSeconds: retryDelaysSeconds,
+                progressHandler: { fraction, _, _, _ in progressHandler?(fraction) }
+            ) {
+                try await fetchManifest(modelId: modelId).matching(globs: files)
+            }
+        } catch let error as DownloadError {
+            guard case .networkUnavailable = error,
+                  firstUnsatisfiedPattern(files, in: directory) == nil
+            else { throw error }
+            AudioLog.download.warning(
+                "\(modelId, privacy: .public): Hub unreachable, every requested file is already cached")
+            progressHandler?(1.0)
+            return
         }
     }
 
@@ -298,20 +345,32 @@ public enum HuggingFaceDownloader {
             return
         }
 
-        try await performDownload(
-            modelId: modelId,
-            directory: directory,
-            retryDelaysSeconds: retryDelaysSeconds,
-            progressHandler: progressHandler
-        ) {
-            let manifest = try await fetchManifest(modelId: modelId)
-            return try safeFiles.map { path in
-                guard let file = manifest.file(at: path) else {
-                    throw DownloadError.failedToDownload(
-                        "\(modelId)/\(path): not present in repository")
+        do {
+            try await performDownload(
+                modelId: modelId,
+                directory: directory,
+                retryDelaysSeconds: retryDelaysSeconds,
+                progressHandler: progressHandler
+            ) {
+                let manifest = try await fetchManifest(modelId: modelId)
+                return try safeFiles.map { path in
+                    guard let file = manifest.file(at: path) else {
+                        throw DownloadError.failedToDownload(
+                            "\(modelId)/\(path): not present in repository")
+                    }
+                    return file
                 }
-                return file
             }
+        } catch let error as DownloadError {
+            let fm = FileManager.default
+            let allCached = safeFiles.allSatisfy {
+                fm.fileExists(atPath: directory.appendingPathComponent($0).path)
+            }
+            guard case .networkUnavailable = error, allCached else { throw error }
+            AudioLog.download.warning(
+                "\(modelId, privacy: .public): Hub unreachable, every requested file is already cached")
+            progressHandler?(1.0, 1, 1, "")
+            return
         }
     }
 
@@ -350,10 +409,41 @@ public enum HuggingFaceDownloader {
             }
         }
 
+        // Distinguish "we couldn't reach the Hub" from "the Hub said no". Only
+        // the former is safe to answer from cache: a 404 means the caller asked
+        // for something that isn't there, and silently loading whatever happens
+        // to be on disk would attribute the resulting failure to the wrong thing.
+        if let lastError, isLikelyNetworkFailure(lastError) {
+            throw DownloadError.networkUnavailable(
+                modelId: modelId, detail: lastError.localizedDescription)
+        }
         throw DownloadError.failedToDownload(
             "\(modelId) after \(maxAttempts) attempt\(maxAttempts == 1 ? "" : "s") "
                 + "(target: \(directory.path)): "
                 + (lastError?.localizedDescription ?? "unknown"))
+    }
+
+    /// Whether `error` looks like the network being unreachable rather than the
+    /// server rejecting the request.
+    ///
+    /// A stall counts: bytes stopped flowing, which is a transport problem, not
+    /// a statement about the repository.
+    static func isLikelyNetworkFailure(_ error: Error) -> Bool {
+        if let downloadError = error as? DownloadError {
+            if case .stalled = downloadError { return true }
+            if case .networkUnavailable = downloadError { return true }
+            return false
+        }
+        guard let urlError = error as? URLError else { return false }
+        switch urlError.code {
+        case .notConnectedToInternet, .networkConnectionLost, .timedOut,
+             .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed,
+             .internationalRoamingOff, .dataNotAllowed, .secureConnectionFailed,
+             .resourceUnavailable:
+            return true
+        default:
+            return false
+        }
     }
 
     // MARK: - Retry ladder

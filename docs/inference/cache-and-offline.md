@@ -85,6 +85,27 @@ once complete. The directory is removed when empty; anything left in it is a
 resume point for an interrupted transfer and is safe to delete manually if you
 want to force a clean re-download.
 
+### When the Hub is unreachable
+
+Resolution always goes to the network, so that a re-exported model is picked
+up rather than silently pinned to whatever was cached first. If the Hub cannot
+be reached and **everything the call asked for is already on disk**, the load
+proceeds from cache instead of failing — a dropped connection shouldn't break a
+load that needs no bytes.
+
+That fallback is deliberately narrow:
+
+- It applies only to transport failures (no route, DNS, refused connection,
+  timeout, stall). An HTTP answer is a real answer: a 404 for a model that
+  doesn't exist still fails, and so does a checksum mismatch.
+- The cache must be *complete* — every requested asset present, and for a
+  sharded bundle every shard the index names. A cache with weights but no
+  tokenizer fails, rather than loading and breaking later somewhere less
+  obvious.
+
+Set `offlineMode: true` when you want to guarantee no network calls at all
+rather than relying on this.
+
 ### Tuning
 
 | Variable | Default | Effect |

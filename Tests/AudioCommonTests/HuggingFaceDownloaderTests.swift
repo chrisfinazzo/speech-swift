@@ -957,3 +957,329 @@ final class DownloadVerificationTests: XCTestCase {
             HuggingFaceDownloader.sha256Hex(of: payload))
     }
 }
+
+/// Covers removal of a consolidated weights file left by an earlier over-fetch.
+/// The loader merges every `.safetensors` in a directory, so a duplicate costs
+/// load time and memory — but several repositories legitimately ship extra
+/// weight files beside a sharded model, and removing one of those breaks them.
+final class RedundantWeightsCleanupTests: XCTestCase {
+
+    private func makeScratch() throws -> URL {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("redundant-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }
+
+    /// Minimal valid safetensors: little-endian UInt64 header length, then the
+    /// JSON header, then tensor bytes.
+    private func writeSafetensors(tensors: [String], to url: URL) throws {
+        var header: [String: Any] = [:]
+        var offset = 0
+        for name in tensors {
+            header[name] = ["dtype": "F32", "shape": [1], "data_offsets": [offset, offset + 4]]
+            offset += 4
+        }
+        let json = try JSONSerialization.data(withJSONObject: header)
+        var length = UInt64(json.count).littleEndian
+        var payload = Data(bytes: &length, count: 8)
+        payload.append(json)
+        payload.append(Data(count: offset))
+        try payload.write(to: url)
+    }
+
+    private func index(_ weightMap: [String: String]) throws -> Data {
+        try JSONSerialization.data(withJSONObject: ["weight_map": weightMap])
+    }
+
+    func testRemovesConsolidatedCopyWhenShardsSupplyEveryTensor() throws {
+        let dir = try makeScratch()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        try writeSafetensors(tensors: ["a.w"], to: dir.appendingPathComponent("model-00001.safetensors"))
+        try writeSafetensors(tensors: ["b.w"], to: dir.appendingPathComponent("model-00002.safetensors"))
+        try writeSafetensors(
+            tensors: ["a.w", "b.w"], to: dir.appendingPathComponent("model.safetensors"))
+
+        HuggingFaceDownloader.removeRedundantConsolidatedWeights(
+            in: dir,
+            indexData: try index(["a.w": "model-00001.safetensors", "b.w": "model-00002.safetensors"]))
+
+        XCTAssertFalse(
+            FileManager.default.fileExists(
+                atPath: dir.appendingPathComponent("model.safetensors").path))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: dir.appendingPathComponent("model-00001.safetensors").path),
+            "the shards are the model and must survive")
+    }
+
+    /// Fish Audio ships `codec.safetensors` next to an index that names only the
+    /// model shards. Deleting weight files the index omits would break it, so
+    /// only the exact consolidated name is ever a candidate.
+    func testKeepsUnrelatedWeightFileTheIndexDoesNotName() throws {
+        let dir = try makeScratch()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        try writeSafetensors(
+            tensors: ["a.w"], to: dir.appendingPathComponent("model-00001-of-00002.safetensors"))
+        try writeSafetensors(
+            tensors: ["b.w"], to: dir.appendingPathComponent("model-00002-of-00002.safetensors"))
+        try writeSafetensors(tensors: ["codec.w"], to: dir.appendingPathComponent("codec.safetensors"))
+
+        HuggingFaceDownloader.removeRedundantConsolidatedWeights(
+            in: dir,
+            indexData: try index([
+                "a.w": "model-00001-of-00002.safetensors",
+                "b.w": "model-00002-of-00002.safetensors",
+            ]))
+
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: dir.appendingPathComponent("codec.safetensors").path),
+            "a separate weight file is not a redundant copy")
+    }
+
+    /// If the consolidated file holds tensors the shards don't, it isn't a
+    /// duplicate and removing it would lose weights.
+    func testKeepsConsolidatedCopyHoldingTensorsTheIndexDoesNotName() throws {
+        let dir = try makeScratch()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        try writeSafetensors(tensors: ["a.w"], to: dir.appendingPathComponent("model-00001.safetensors"))
+        try writeSafetensors(
+            tensors: ["a.w", "extra.w"], to: dir.appendingPathComponent("model.safetensors"))
+
+        HuggingFaceDownloader.removeRedundantConsolidatedWeights(
+            in: dir, indexData: try index(["a.w": "model-00001.safetensors"]))
+
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: dir.appendingPathComponent("model.safetensors").path))
+    }
+
+    /// With a shard missing, the consolidated file may be the only complete
+    /// copy of the weights.
+    func testKeepsConsolidatedCopyWhenAShardIsMissing() throws {
+        let dir = try makeScratch()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        try writeSafetensors(tensors: ["a.w"], to: dir.appendingPathComponent("model-00001.safetensors"))
+        try writeSafetensors(
+            tensors: ["a.w", "b.w"], to: dir.appendingPathComponent("model.safetensors"))
+
+        HuggingFaceDownloader.removeRedundantConsolidatedWeights(
+            in: dir,
+            indexData: try index(["a.w": "model-00001.safetensors", "b.w": "model-00002.safetensors"]))
+
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: dir.appendingPathComponent("model.safetensors").path),
+            "never remove weights while the indexed set is incomplete")
+    }
+
+    /// A single-file bundle whose index names `model.safetensors` itself.
+    func testKeepsConsolidatedCopyNamedByTheIndex() throws {
+        let dir = try makeScratch()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        try writeSafetensors(tensors: ["a.w"], to: dir.appendingPathComponent("model.safetensors"))
+
+        HuggingFaceDownloader.removeRedundantConsolidatedWeights(
+            in: dir, indexData: try index(["a.w": "model.safetensors"]))
+
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: dir.appendingPathComponent("model.safetensors").path))
+    }
+
+    func testHeaderReaderRejectsGarbage() throws {
+        let dir = try makeScratch()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let url = dir.appendingPathComponent("broken.safetensors")
+        try Data("not a safetensors file at all".utf8).write(to: url)
+
+        XCTAssertNil(HuggingFaceDownloader.safetensorsTensorNames(at: url))
+    }
+
+    func testHeaderReaderExtractsTensorNamesIgnoringMetadata() throws {
+        let dir = try makeScratch()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let url = dir.appendingPathComponent("m.safetensors")
+        var header: [String: Any] = ["__metadata__": ["format": "pt"]]
+        header["x.weight"] = ["dtype": "F32", "shape": [1], "data_offsets": [0, 4]]
+        let json = try JSONSerialization.data(withJSONObject: header)
+        var length = UInt64(json.count).littleEndian
+        var payload = Data(bytes: &length, count: 8)
+        payload.append(json)
+        payload.append(Data(count: 4))
+        try payload.write(to: url)
+
+        XCTAssertEqual(HuggingFaceDownloader.safetensorsTensorNames(at: url), ["x.weight"])
+    }
+}
+
+/// A network blip must not fail a load that needs no bytes.
+///
+/// Regression: a transient outage during a full test run failed transcription
+/// for a model whose every file was already cached, because resolution always
+/// goes to the network. Falling back is only safe when the Hub was unreachable
+/// — a 404 is a real answer — and only when the cache is genuinely complete.
+///
+/// The unreachable Hub is simulated by pointing `HF_ENDPOINT` at a closed port,
+/// so these run without network and stay in CI.
+final class UnreachableHubFallbackTests: XCTestCase {
+
+    private static let deadEndpoint = "http://127.0.0.1:9"
+
+    private func withDeadHub<T>(_ body: () async throws -> T) async rethrows -> T {
+        let previous = ProcessInfo.processInfo.environment["HF_ENDPOINT"]
+        setenv("HF_ENDPOINT", Self.deadEndpoint, 1)
+        defer {
+            if let previous { setenv("HF_ENDPOINT", previous, 1) } else { unsetenv("HF_ENDPOINT") }
+        }
+        return try await body()
+    }
+
+    private func makeScratch() throws -> URL {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("unreachable-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }
+
+    func testCompleteCacheLoadsWhileHubIsUnreachable() async throws {
+        let dir = try makeScratch()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        try Data(count: 8).write(to: dir.appendingPathComponent("model.safetensors"))
+        try Data("{}".utf8).write(to: dir.appendingPathComponent("config.json"))
+        try Data(count: 4).write(to: dir.appendingPathComponent("vocab.json"))
+
+        var reported = 0.0
+        try await withDeadHub {
+            try await HuggingFaceDownloader.downloadWeights(
+                modelId: "org/model",
+                to: dir,
+                additionalFiles: ["vocab.json"],
+                retryDelaysSeconds: []
+            ) { reported = $0 }
+        }
+
+        XCTAssertEqual(reported, 1.0, accuracy: 0.001)
+    }
+
+    /// The cache must be complete, not merely non-empty. Weights without the
+    /// tokenizer the caller asked for would load and then fail somewhere else.
+    func testIncompleteCacheStillFailsWhileHubIsUnreachable() async throws {
+        let dir = try makeScratch()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        try Data(count: 8).write(to: dir.appendingPathComponent("model.safetensors"))
+        try Data("{}".utf8).write(to: dir.appendingPathComponent("config.json"))
+        // vocab.json is requested below but absent.
+
+        do {
+            try await withDeadHub {
+                try await HuggingFaceDownloader.downloadWeights(
+                    modelId: "org/model",
+                    to: dir,
+                    additionalFiles: ["vocab.json"],
+                    retryDelaysSeconds: [])
+            }
+            XCTFail("an incomplete cache must not be accepted")
+        } catch let error as DownloadError {
+            guard case .networkUnavailable = error else {
+                return XCTFail("unexpected: \(error)")
+            }
+        }
+    }
+
+    func testEmptyCacheStillFailsWhileHubIsUnreachable() async throws {
+        let dir = try makeScratch()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        do {
+            try await withDeadHub {
+                try await HuggingFaceDownloader.downloadWeights(
+                    modelId: "org/model", to: dir, retryDelaysSeconds: [])
+            }
+            XCTFail("an empty cache has nothing to fall back to")
+        } catch {
+            // expected
+        }
+    }
+
+    /// Same rule for the explicit-list paths, including bundle globs.
+    func testDownloadFilesFallsBackWhenEveryPatternIsSatisfied() async throws {
+        let dir = try makeScratch()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let bundle = dir.appendingPathComponent("Mask.mlmodelc", isDirectory: true)
+        try FileManager.default.createDirectory(at: bundle, withIntermediateDirectories: true)
+        try Data(count: 4).write(to: bundle.appendingPathComponent("coremldata.bin"))
+        try Data("{}".utf8).write(to: dir.appendingPathComponent("config.json"))
+
+        try await withDeadHub {
+            try await HuggingFaceDownloader.downloadFiles(
+                modelId: "org/model",
+                to: dir,
+                files: ["config.json", "Mask.mlmodelc/**"],
+                retryDelaysSeconds: [])
+        }
+    }
+
+    func testDownloadFilesStillFailsWhenAPatternIsUnsatisfied() async throws {
+        let dir = try makeScratch()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        try Data("{}".utf8).write(to: dir.appendingPathComponent("config.json"))
+
+        do {
+            try await withDeadHub {
+                try await HuggingFaceDownloader.downloadFiles(
+                    modelId: "org/model",
+                    to: dir,
+                    files: ["config.json", "Missing.mlmodelc/**"],
+                    retryDelaysSeconds: [])
+            }
+            XCTFail("a missing bundle must not be papered over")
+        } catch {
+            // expected
+        }
+    }
+
+    func testByteWeightedFallsBackWhenEveryFileIsCached() async throws {
+        let dir = try makeScratch()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        try Data(count: 4).write(to: dir.appendingPathComponent("a.json"))
+        try Data(count: 4).write(to: dir.appendingPathComponent("b.json"))
+
+        try await withDeadHub {
+            try await HuggingFaceDownloader.downloadFilesByteWeighted(
+                modelId: "org/model",
+                to: dir,
+                files: ["a.json", "b.json"],
+                retryDelaysSeconds: [])
+        }
+    }
+
+    /// An HTTP answer is a real answer and must never be softened, even with a
+    /// complete-looking cache. Classification is checked directly so the test
+    /// needs no network.
+    func testHTTPErrorsAreNotTreatedAsNetworkFailures() {
+        XCTAssertFalse(
+            HuggingFaceDownloader.isLikelyNetworkFailure(
+                DownloadError.failedToDownload("org/model: file listing HTTP 404")))
+        XCTAssertFalse(
+            HuggingFaceDownloader.isLikelyNetworkFailure(
+                DownloadError.checksumMismatch(file: "w", expected: "a", actual: "b")))
+        XCTAssertTrue(
+            HuggingFaceDownloader.isLikelyNetworkFailure(
+                DownloadError.stalled(modelId: "org/model", seconds: 90)))
+        XCTAssertTrue(
+            HuggingFaceDownloader.isLikelyNetworkFailure(
+                URLError(.notConnectedToInternet)))
+        XCTAssertTrue(
+            HuggingFaceDownloader.isLikelyNetworkFailure(URLError(.networkConnectionLost)))
+        XCTAssertFalse(HuggingFaceDownloader.isLikelyNetworkFailure(URLError(.badURL)))
+    }
+}
