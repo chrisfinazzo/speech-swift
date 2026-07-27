@@ -58,9 +58,77 @@ Notes:
 - The cache is keyed by repo id, not by host — switching `HF_ENDPOINT` reuses any weights already on disk and never forces a re-download. You can fetch from the mirror once and keep using the cache offline.
 - Applies to every model and CLI command, since all downloads share one downloader.
 
+## Download Behavior
+
+Every model shares one downloader. A repository is resolved once against the
+Hub tree API, which returns each file's size and — for LFS-backed files — its
+SHA-256, in a single request. Transfers then behave the same way for every
+model:
+
+- **Large files transfer as concurrent byte ranges** and record completed
+  chunks alongside the data, so an interrupted download resumes where it
+  stopped instead of restarting the file. This survives process exit: a
+  download interrupted by quitting the app continues on next launch.
+- **Progress is weighted by real transferred bytes**, across the whole file
+  set rather than per file.
+- **LFS-backed weights are checksummed** after transfer. A file whose digest
+  doesn't match is deleted rather than kept, so a corrupted download is
+  refetched instead of being cached permanently and resurfacing later as an
+  unreadable-tensor error. Already-cached files are not re-hashed on load.
+- **Sharded bundles fetch only the shards their index names.** A repository
+  that publishes both a sharded set and a consolidated `model.safetensors`
+  holds the same tensors twice; `model.safetensors.index.json` decides which
+  copy is used.
+
+In-flight files stage under `<cacheDir>/.incomplete/` and are moved into place
+once complete. The directory is removed when empty; anything left in it is a
+resume point for an interrupted transfer and is safe to delete manually if you
+want to force a clean re-download.
+
+### When the Hub is unreachable
+
+Resolution always goes to the network, so that a re-exported model is picked
+up rather than silently pinned to whatever was cached first. If the Hub cannot
+be reached and **everything the call asked for is already on disk**, the load
+proceeds from cache instead of failing — a dropped connection shouldn't break a
+load that needs no bytes.
+
+That fallback is deliberately narrow:
+
+- It applies only to transport failures (no route, DNS, refused connection,
+  timeout, stall). An HTTP answer is a real answer: a 404 for a model that
+  doesn't exist still fails, and so does a checksum mismatch.
+- The cache must be *complete* — every requested asset present, and for a
+  sharded bundle every shard the index names. A cache with weights but no
+  tokenizer fails, rather than loading and breaking later somewhere less
+  obvious.
+
+Set `offlineMode: true` when you want to guarantee no network calls at all
+rather than relying on this.
+
+### Tuning
+
+| Variable | Default | Effect |
+|---|---|---|
+| `HF_ENDPOINT` | `https://huggingface.co` | Mirror host (see above) |
+| `HF_TOKEN` | — | Bearer token for gated repositories |
+| `HF_DOWNLOAD_STALL_TIMEOUT` | `300` | Seconds without progress before an attempt is abandoned and retried |
+| `HF_DOWNLOAD_RANGE_CONCURRENCY` | `16` | Concurrent range requests per file (capped at 16) |
+| `HF_DOWNLOAD_RANGE_THRESHOLD` | `8388608` (8 MB) | File size at or above which ranged transfer is used |
+| `HF_DOWNLOAD_RANGE_CHUNK` | `8388608` (8 MB) | Bytes per range request |
+
+Each in-flight chunk is buffered whole, so chunk size × concurrency is the
+transient memory a large download costs — 128 MB at the defaults. Lower
+`HF_DOWNLOAD_RANGE_CONCURRENCY` on memory-constrained devices.
+
+Failed downloads retry five times with 5/15/30/60 s backoff. The stall timeout
+is deliberately patient because app users cannot set environment variables and
+flaky networks routinely stall for a minute or two before recovering; CI pins
+it lower to fail fast.
+
 ## Offline Mode
 
-When `offlineMode: true`, the downloader skips network requests if weights already exist on disk:
+When `offlineMode: true`, the downloader never touches the network:
 
 ```swift
 let model = try await Qwen3ASRModel.fromPretrained(offlineMode: true)
@@ -68,9 +136,14 @@ let model = try await Qwen3ASRModel.fromPretrained(offlineMode: true)
 
 Behavior:
 - Weights exist → returns immediately (no HuggingFace API calls)
-- Weights missing → falls through to normal download (will fail if truly offline)
+- Weights missing → throws a cache-miss error naming the directory it checked
 
-This avoids unnecessary network latency on app launch when models are already cached.
+A sharded bundle counts as present only when every shard its index names is on
+disk, so a partially downloaded model is reported missing rather than loaded
+with some tensors absent.
+
+This avoids unnecessary network latency on app launch when models are already
+cached.
 
 ### Combining Both
 

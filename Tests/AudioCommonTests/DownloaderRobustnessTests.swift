@@ -50,33 +50,31 @@ final class DownloaderRobustnessTests: XCTestCase {
         XCTAssertTrue(HuggingFaceDownloader.weightsExist(in: dir))
     }
 
-    /// A download that reports no fractional progress but keeps writing
-    /// bytes to the destination must survive the stall guard.
-    func testStallGuardTicksOnDiskGrowth() async throws {
-        let dir = try makeTempDir()
-        let file = dir.appendingPathComponent("model.safetensors.incomplete")
-        FileManager.default.createFile(atPath: file.path, contents: Data())
-
+    /// A slow but healthy transfer must survive the stall guard.
+    ///
+    /// The guard used to watch the destination directory for growth, because
+    /// `hub.snapshot` only reported progress once a whole file had landed and a
+    /// single multi-GB shard could therefore go quiet for longer than the stall
+    /// window. Ranged transfer reports every megabyte of real bytes, so ticks
+    /// arrive throughout — and directory size is no longer a progress signal at
+    /// all, since the staging file is allocated at full length up front.
+    func testStallGuardSurvivesSlowButTickingTransfer() async throws {
         try await HuggingFaceDownloader.withDownloadStallGuard(
-            modelId: "test/growing", stallTimeoutSeconds: 2, watchDirectory: dir
-        ) { _ in
-            // 5s of transfer with zero progress callbacks, but the file grows.
-            for _ in 0..<10 {
+            modelId: "test/slow", stallTimeoutSeconds: 2
+        ) { tick in
+            // 5 s of transfer, each tick well inside the 2 s window.
+            for step in 0..<10 {
                 try await Task.sleep(for: .milliseconds(500))
-                let handle = try FileHandle(forWritingTo: file)
-                try handle.seekToEnd()
-                try handle.write(contentsOf: Data(repeating: 7, count: 64))
-                try handle.close()
+                tick(Double(step) / 10.0)
             }
         }
     }
 
-    /// No progress callbacks and no disk growth is a genuine stall.
-    func testStallGuardStillFiresWithoutGrowth() async throws {
-        let dir = try makeTempDir()
+    /// No progress at all is a genuine stall.
+    func testStallGuardFiresWhenNothingProgresses() async throws {
         do {
             try await HuggingFaceDownloader.withDownloadStallGuard(
-                modelId: "test/stalled", stallTimeoutSeconds: 1, watchDirectory: dir
+                modelId: "test/stalled", stallTimeoutSeconds: 1
             ) { _ in
                 try await Task.sleep(for: .seconds(10))
             }
