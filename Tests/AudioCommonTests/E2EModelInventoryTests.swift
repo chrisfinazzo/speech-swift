@@ -14,16 +14,15 @@ import XCTest
 /// downloaded — so the whole sweep costs a few seconds.
 final class E2EModelInventoryTests: XCTestCase {
 
-    /// Model ids known to be broken, so the sweep can stay green while still
-    /// failing on anything *newly* broken. Entries here are debt, not
-    /// exemptions: the export scripts in `speech-models` support every
-    /// Stable Audio variant, so these are unpublished rather than unbuildable.
-    static let knownBroken: Set<String> = [
-        "aufklarer/Stable-Audio-3-DiT-Medium-MLX-4bit",       // never published
-        "aufklarer/Stable-Audio-3-DiT-Small-Music-MLX-8bit",  // never published
-        "aufklarer/Stable-Audio-3-DiT-Small-SFX-MLX-8bit",    // never published
-        "aufklarer/Stable-Audio-3-DiT-Small-SFX-MLX-4bit",    // published empty: config.json only
-    ]
+    /// Model ids allowed to be broken, so the sweep can stay green on known
+    /// debt while still failing on anything newly broken.
+    ///
+    /// Empty, and worth keeping that way. It briefly held four Stable Audio
+    /// variants — three never published, one uploaded with nothing but a
+    /// 38-byte `config.json` — which were removed from `StableAudio3Variant`
+    /// rather than tolerated here, since a selectable variant that fails at
+    /// download time is worse than one that isn't offered.
+    static let knownBroken: Set<String> = []
 
     /// Owners whose repositories this package downloads at run time. Others
     /// appear in sources as provenance strings (`nvidia/bigvgan…` credits the
