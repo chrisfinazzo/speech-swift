@@ -4,15 +4,7 @@ import MLXNN
 import MLXFast
 import MLXCommon
 import AudioCommon
-
-/// Synthesis progress logs go to stderr so they don't corrupt a stdout-based
-/// IPC channel (e.g. speech-studio sidecar's NDJSON protocol). Swift's stdio
-/// `print()` is line-buffered and may flush at unexpected boundaries; routing
-/// to stderr keeps the stdout pipe clean for JSON responses.
-@inline(__always)
-private func iclLog(_ message: String) {
-    FileHandle.standardError.write(Data((message + "\n").utf8))
-}
+import os
 
 // MARK: - ICL Voice Cloning
 
@@ -103,7 +95,8 @@ extension Qwen3TTSModel {
         } else if let id = CodecTokens.languageId(for: language) {
             langId = id
         } else {
-            iclLog("Warning: Unknown language '\(language)', falling back to auto")
+            AudioLog.inference.warning(
+                "Unknown language '\(language, privacy: .private)', falling back to auto")
             return synthesizeWithVoiceCloneICL(
                 text: text, referenceAudio: referenceAudio,
                 referenceSampleRate: referenceSampleRate,
@@ -118,7 +111,8 @@ extension Qwen3TTSModel {
         let refCodes: MLXArray
         if let cached = referenceAudioCache.codecRefCodes(for: referenceAudio, sampleRate: referenceSampleRate) {
             refCodes = cached
-            iclLog("  ICL: codec tokens cache hit (\(cached.dim(2)) frames)")
+            AudioLog.inference.debug(
+                "ICL: codec tokens cache hit (\(cached.dim(2), privacy: .public) frames)")
         } else {
             let audio24k = referenceSampleRate == 24000
                 ? referenceAudio
@@ -127,7 +121,8 @@ extension Qwen3TTSModel {
             eval(codes)
             referenceAudioCache.storeCodecRefCodes(codes, audio: referenceAudio, sampleRate: referenceSampleRate)
             refCodes = codes
-            iclLog("  ICL: encoded \(audio24k.count) samples → \(codes.dim(2)) codec frames")
+            AudioLog.inference.debug(
+                "ICL: encoded \(audio24k.count, privacy: .public) samples → \(codes.dim(2), privacy: .public) codec frames")
         }
 
         // Step 3: Extract speaker embedding (ICL still uses x-vector for speaker conditioning; cached)
@@ -182,7 +177,7 @@ extension Qwen3TTSModel {
         let t2 = CFAbsoluteTimeGetCurrent()
 
         guard numFrames > 0 else {
-            iclLog("Warning: ICL generation produced no tokens")
+            AudioLog.inference.warning("ICL generation produced no tokens")
             return []
         }
 
@@ -200,7 +195,8 @@ extension Qwen3TTSModel {
             ? concatenated([refCodes, allCodebooks], axis: 2)   // [1, 16, refFrames + numFrames]
             : allCodebooks
         let totalFrames = codesForDecode.dim(2)
-        iclLog("  ICL: decoding \(numFrames) target frames (+ \(trimReference ? refFrames : 0) ref ctx) → \(totalFrames) frames...")
+        AudioLog.inference.debug(
+            "ICL: decoding \(numFrames, privacy: .public) target frames (+ \(trimReference ? refFrames : 0, privacy: .public) ref ctx) → \(totalFrames, privacy: .public) frames")
         let fullWaveform = codecDecoder.decode(codes: codesForDecode)
         let t3 = CFAbsoluteTimeGetCurrent()
 
@@ -209,7 +205,8 @@ extension Qwen3TTSModel {
             let cut = refFrames * fullWaveform.count / totalFrames
             trimmedWaveform = (cut > 0 && cut < fullWaveform.count)
                 ? Array(fullWaveform.dropFirst(cut)) : fullWaveform
-            iclLog("  ICL: cut \(cut) reference samples (~\(String(format: "%.2f", Double(cut)/24000.0))s, \(refFrames)/\(totalFrames) frames) from output start")
+            AudioLog.inference.debug(
+                "ICL: cut \(cut, privacy: .public) reference samples (~\(String(format: "%.2f", Double(cut)/24000.0), privacy: .public)s, \(refFrames, privacy: .public)/\(totalFrames, privacy: .public) frames) from output start")
         } else {
             trimmedWaveform = fullWaveform
         }
@@ -222,7 +219,8 @@ extension Qwen3TTSModel {
         let totTime = String(format: "%.3f", t3-t0)
         let audDur = String(format: "%.2f", audioDur)
         let rtf = String(format: "%.2f", (t3-t0)/max(audioDur, 0.001))
-        iclLog("  ICL timing: encode=\(encTime)s | generate=\(genTime)s (\(numFrames) steps, \(msPerStep)ms/step) | decode=\(decTime)s | total=\(totTime)s | audio=\(audDur)s | RTF=\(rtf)")
+        AudioLog.inference.info(
+            "ICL timing: encode=\(encTime, privacy: .public)s | generate=\(genTime, privacy: .public)s (\(numFrames, privacy: .public) steps, \(msPerStep, privacy: .public)ms/step) | decode=\(decTime, privacy: .public)s | total=\(totTime, privacy: .public)s | audio=\(audDur, privacy: .public)s | RTF=\(rtf, privacy: .public)")
 
         return trimmedWaveform
     }
