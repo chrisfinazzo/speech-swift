@@ -105,6 +105,10 @@ let package = Package(
             targets: ["NemotronStreamingASR"]
         ),
         .library(
+            name: "VoiceChat",
+            targets: ["VoiceChat"]
+        ),
+        .library(
             name: "WhisperASR",
             targets: ["WhisperASR"]
         ),
@@ -202,6 +206,10 @@ let package = Package(
             targets: ["AudioServerCLI"]
         ),
         .executable(
+            name: "voicechat-bench",
+            targets: ["VoiceChatBenchmark"]
+        ),
+        .executable(
             name: "asr-bench",
             targets: ["AsrBenchmark"]
         ),
@@ -257,6 +265,34 @@ let package = Package(
                 .product(name: "MLX", package: "mlx-swift"),
                 .product(name: "MLXNN", package: "mlx-swift"),
                 .product(name: "MLXFast", package: "mlx-swift")
+            ]
+        ),
+        .target(
+            name: "VoiceChat",
+            dependencies: [
+                "AudioCommon",
+                "MLXCommon",
+                .product(name: "Hub", package: "swift-transformers"),
+                .product(name: "MLX", package: "mlx-swift"),
+                .product(name: "MLXNN", package: "mlx-swift"),
+                .product(name: "MLXFast", package: "mlx-swift"),
+                .product(name: "MLXFFT", package: "mlx-swift"),
+                .product(name: "MLXRandom", package: "mlx-swift"),
+                .product(name: "MLXLLM", package: "mlx-swift-lm"),
+                .product(name: "MLXLMCommon", package: "mlx-swift-lm"),
+                .product(name: "Tokenizers", package: "swift-transformers"),
+            ],
+            resources: [.process("Resources")]
+        ),
+        .executableTarget(
+            name: "VoiceChatBenchmark",
+            dependencies: [
+                "AudioCommon",
+                "VoiceChat",
+                .product(name: "MLX", package: "mlx-swift"),
+                .product(name: "MLXNN", package: "mlx-swift"),
+                .product(name: "MLXRandom", package: "mlx-swift"),
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
         ),
         .target(
@@ -843,6 +879,16 @@ let package = Package(
             ]
         ),
         .testTarget(
+            name: "VoiceChatTests",
+            dependencies: [
+                "VoiceChat",
+                .product(name: "MLX", package: "mlx-swift"),
+                .product(name: "MLXNN", package: "mlx-swift"),
+                .product(name: "MLXLMCommon", package: "mlx-swift-lm"),
+            ],
+            resources: [.process("Resources")]
+        ),
+        .testTarget(
             name: "CohereTranscribeASRTests",
             dependencies: ["CohereTranscribeASR", "AudioCommon"]
         ),
@@ -1096,6 +1142,9 @@ let package = Package(
                 "MLXCommon",
                 .product(name: "MLX", package: "mlx-swift"),
                 .product(name: "MLXNN", package: "mlx-swift"),
+                // Gemma4AttentionBlockTests imports MLXRandom; without it the
+                // whole test bundle fails to build.
+                .product(name: "MLXRandom", package: "mlx-swift"),
             ]
         ),
         .testTarget(
