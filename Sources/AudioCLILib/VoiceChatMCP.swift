@@ -1247,6 +1247,23 @@ actor VoiceChatMCPToolCoordinator {
     private var pendingWrite: PendingWrite?
     private var lastExecutedWriteFingerprint: String?
     private var freshUserSpeechSinceLastWrite = true
+    private var toolCallsSinceUserSpeech = 0
+
+    /// Tool calls one accepted user turn may execute before the runtime stops
+    /// answering and hands the turn back to the checkpoint.
+    ///
+    /// Reads previously had no repeat protection at all, and a checkpoint that
+    /// degenerates into a repetition pattern will call indefinitely: an observed
+    /// session searched `"Coffee"`, then `"8 PM"`, `"9 PM"`, and onward past
+    /// `"36 PM"`, dozens of successful calls in a row, before the process
+    /// crashed. Nothing bounded it, because every call succeeded in about 30 ms
+    /// and the function-start gate arms only on failures.
+    ///
+    /// Five matches the checkpoint's enabled-tool envelope: a turn that
+    /// genuinely needs more than one read can still chain a few, while a loop
+    /// stops quickly. Greedy decoding makes such loops self-reinforcing, so the
+    /// bound is deliberately independent of sampling settings.
+    private static let toolCallBudgetPerUserTurn = 5
 
     init(
         executor: any VoiceChatMCPToolExecuting,
@@ -1285,7 +1302,28 @@ actor VoiceChatMCPToolCoordinator {
                 ])
             }
 
+            // Bound every tool, not just writes. The budget is per accepted
+            // user turn and resets on fresh acoustic activity, so ordinary
+            // multi-step use is unaffected while a repetition loop terminates.
+            if toolCallsSinceUserSpeech >= Self.toolCallBudgetPerUserTurn {
+                return responseAction([
+                    "ok": false,
+                    "status": "call_budget_exhausted",
+                    "tool": call.name,
+                    "error": "too many tool calls for one request;"
+                        + " answer with the information already returned",
+                ])
+            }
+
             if tool.access == .read {
+                // Deliberately no duplicate suppression for reads. Legitimate
+                // flows repeat one — listing to resolve an opaque reference
+                // before an update is the obvious case — and suppressing the
+                // repeat breaks them. It would not have helped anyway: the
+                // observed loop varied its arguments each time, so every
+                // fingerprint differed. The per-turn budget above is what
+                // bounds it.
+                toolCallsSinceUserSpeech += 1
                 return executionAction(for: await execute(call))
             }
 
@@ -1368,6 +1406,8 @@ actor VoiceChatMCPToolCoordinator {
     func observeUserActivity(rnntIsBlank: Bool?) {
         if rnntIsBlank == false {
             freshUserSpeechSinceLastWrite = true
+            // A new user turn restores the budget: asking again is legitimate.
+            toolCallsSinceUserSpeech = 0
             if var pendingWrite,
                pendingWrite.stage == .awaitingModelDecision {
                 pendingWrite.observedUserSpeech = true
@@ -1410,6 +1450,7 @@ actor VoiceChatMCPToolCoordinator {
         if Self.responseSucceeded(response) {
             lastExecutedWriteFingerprint = call.fingerprint
             freshUserSpeechSinceLastWrite = false
+            toolCallsSinceUserSpeech += 1
         }
         return executionAction(for: response)
     }
