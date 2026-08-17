@@ -206,18 +206,40 @@ public final class FullDuplexAudioIO: @unchecked Sendable {
         }
 
         var playerAttached = false
-        do {
-            // Start the Voice Processing capture graph before adding any
-            // playback source. `setVoiceProcessingEnabled` returns before the
-            // macOS output client has finished moving from the hardware rate
-            // to its negotiated rate; starting here is the synchronization
-            // boundary that makes the live format safe to consume.
-            try engine.start()
-
+        let attachPlayer = {
             engine.attach(playerNode)
-            playerAttached = true
             engine.connect(
                 playerNode, to: engine.mainMixerNode, format: nil)
+        }
+        do {
+            // The two paths need opposite orderings, and using the Voice
+            // Processing ordering for both is what made `--no-aec` capture
+            // nothing at all.
+            //
+            // With Voice Processing, the capture graph must start before any
+            // playback source is added: `setVoiceProcessingEnabled` returns
+            // before the macOS output client has finished moving from the
+            // hardware rate to its negotiated rate, and starting here is the
+            // synchronization boundary that makes the live format safe.
+            //
+            // Without it, the engine is an ordinary input/output graph, and
+            // attaching a player after `start()` leaves the input tap silent
+            // forever — measured as zero tap callbacks, on matched and
+            // mismatched devices alike, while the same graph attached before
+            // `start()` delivers ~10 callbacks per second. The session then
+            // hangs, because frame-driven limits like `--max-seconds` never
+            // advance without captured frames.
+            if !configuration.enableAEC {
+                attachPlayer()
+                playerAttached = true
+            }
+
+            try engine.start()
+
+            if !playerAttached {
+                attachPlayer()
+                playerAttached = true
+            }
             let playbackFormat = playerNode.outputFormat(forBus: 0)
             guard playbackFormat.sampleRate > 0,
                   playbackFormat.channelCount > 0,
