@@ -184,7 +184,7 @@ public final class SortformerDiarizer {
     public func diarize(
         audio: [Float],
         sampleRate: Int,
-        config: DiarizationConfig = .default
+        config: DiarizationConfig = .sortformer
     ) -> DiarizationResult {
         diarize(audio: audio, sampleRate: sampleRate, config: config, progressHandler: nil)
     }
@@ -205,7 +205,7 @@ public final class SortformerDiarizer {
     public func diarize(
         audio: [Float],
         sampleRate: Int,
-        config: DiarizationConfig = .default,
+        config: DiarizationConfig = .sortformer,
         progressHandler: ((Float, String) -> Bool)?
     ) -> DiarizationResult {
         let samples = DiarizationHelpers.resample(audio, from: sampleRate, to: self.config.sampleRate)

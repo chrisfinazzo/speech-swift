@@ -36,7 +36,7 @@ public final class SortformerStreamingSession {
     /// Thresholds used when snapshots binarize the confirmed-frame history.
     /// Adjustable per session so consumers can trade misses against false
     /// alarms without reloading the model.
-    public var binarization: DiarizationConfig = .default
+    public var binarization: DiarizationConfig = .sortformer
 
     /// PCM retained for mel extraction, with `pcmBaseSample` giving the
     /// absolute index of `pcm[0]`. Only the span still needed for the next

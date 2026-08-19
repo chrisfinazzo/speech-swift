@@ -18,7 +18,8 @@ final class SortformerTests: XCTestCase {
         XCTAssertEqual(config.maxSpeakers, 4)
         XCTAssertEqual(config.subsamplingFactor, 8)
         XCTAssertEqual(config.onset, 0.5, accuracy: 0.001)
-        XCTAssertEqual(config.offset, 0.3, accuracy: 0.001)
+        // NeMo parity: symmetric 0.5/0.5 binarization thresholds.
+        XCTAssertEqual(config.offset, 0.5, accuracy: 0.001)
     }
 
     func testCustomConfig() {

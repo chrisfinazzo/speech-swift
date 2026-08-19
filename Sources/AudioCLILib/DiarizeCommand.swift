@@ -57,6 +57,15 @@ public struct DiarizeCommand: ParsableCommand {
     @Option(name: .long, help: "Minimum silence between segments in seconds (default 0.15)")
     public var minSilence: Float = 0.15
 
+    @Option(name: .long, help: "Minimum speech segment duration in seconds (default 0.3)")
+    public var minSpeech: Float = 0.3
+
+    @Option(name: .long, help: "Speaker activity onset threshold (default 0.5)")
+    public var onset: Float = 0.5
+
+    @Option(name: .long, help: "Speaker activity offset threshold (default: 0.5 for sortformer, matching NeMo; 0.3 for pyannote)")
+    public var offset: Float?
+
     @Option(name: .long, help: "Cosine distance threshold for speaker clustering (default 0.715, lower = fewer speakers)")
     public var clusterThreshold: Float = 0.715
 
@@ -70,7 +79,12 @@ public struct DiarizeCommand: ParsableCommand {
             let duration = formatDuration(audio.count, sampleRate: 16000)
             print("  Loaded \(audio.count) samples (\(duration)s)")
 
+            // Sortformer binarizes at NeMo's symmetric 0.5/0.5 by default; the
+            // pyannote pipeline keeps its tuned 0.3 hysteresis offset.
             let config = DiarizationConfig(
+                onset: onset,
+                offset: offset ?? (engine == "sortformer" ? 0.5 : 0.3),
+                minSpeechDuration: minSpeech,
                 minSilenceDuration: minSilence,
                 clusteringThreshold: clusterThreshold)
 

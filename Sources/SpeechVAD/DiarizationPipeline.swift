@@ -36,6 +36,11 @@ public struct DiarizationConfig: Sendable {
     }
 
     public static let `default` = DiarizationConfig()
+
+    /// Sortformer default: NeMo binarizes with a symmetric 0.5/0.5
+    /// onset/offset, and the 0.3 hysteresis offset tuned for the pyannote
+    /// pipeline measurably inflates false alarms on Sortformer activity.
+    public static let sortformer = DiarizationConfig(offset: 0.5)
 }
 
 // MARK: - Result
