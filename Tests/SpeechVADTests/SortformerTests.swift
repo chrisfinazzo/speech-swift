@@ -109,6 +109,43 @@ final class SortformerTests: XCTestCase {
                           "440Hz peak should be in the lower half of mel bins (got bin \(maxBin))")
     }
 
+    func testMelFilterbankUsesSlaneyScale() {
+        // The checkpoint is trained on librosa-default (Slaney) mel bins:
+        // linear below 1 kHz, logarithmic above. The HTK formula places a
+        // 500 Hz tone ~6 bins higher, which is the regression this guards.
+        let extractor = SortformerMelExtractor()
+        let toneHz: Float = 500.0
+        let audio = (0..<16000).map { i in
+            sinf(2.0 * Float.pi * toneHz * Float(i) / 16000.0) * 0.5
+        }
+        let (melSpec, nFrames) = extractor.extract(audio)
+        XCTAssertGreaterThan(nFrames, 10)
+
+        // Use a mid frame to avoid edge padding effects.
+        let frame = nFrames / 2
+        var maxBin = 0
+        var maxEnergy: Float = -.infinity
+        for b in 0..<128 where melSpec[frame * 128 + b] > maxEnergy {
+            maxEnergy = melSpec[frame * 128 + b]
+            maxBin = b
+        }
+
+        // Expected bin under the Slaney scale: centers are linearly spaced in
+        // mel between mel(0) and mel(8000) with 130 edge points.
+        func hzToMelSlaney(_ hz: Float) -> Float {
+            let fSp: Float = 200.0 / 3.0
+            let minLogHz: Float = 1000.0
+            let logStep = logf(6.4) / 27.0
+            return hz >= minLogHz
+                ? minLogHz / fSp + logf(hz / minLogHz) / logStep
+                : hz / fSp
+        }
+        let melMax = hzToMelSlaney(8000)
+        let expected = Int((hzToMelSlaney(toneHz) / melMax * 129).rounded()) - 1
+        XCTAssertLessThanOrEqual(abs(maxBin - expected), 1,
+                                 "500 Hz peak should sit at Slaney bin \(expected), got \(maxBin)")
+    }
+
     // MARK: - Binarization Tests (reuses PowersetDecoder.binarize)
 
     func testBinarizationSingleSpeaker() {
