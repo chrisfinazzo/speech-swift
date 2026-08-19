@@ -134,7 +134,13 @@ public struct DiarizeCommand: ParsableCommand {
 
         print("Running diarization (Sortformer)...")
         let start = Date()
-        let result = diarizer.diarize(audio: audio, sampleRate: 16000, config: config)
+        var result = diarizer.diarize(audio: audio, sampleRate: 16000, config: config)
+        if vadFilter {
+            print("Applying Silero VAD filter...")
+            let vadModel = try await SileroVADModel.fromPretrained(progressHandler: reportProgress)
+            let speech = vadModel.detectSpeech(audio: audio, sampleRate: 16000)
+            result = Self.maskedToSpeech(result, speech: speech)
+        }
         let elapsed = Date().timeIntervalSince(start)
 
         outputResult(result, elapsed: elapsed)
@@ -142,6 +148,39 @@ public struct DiarizeCommand: ParsableCommand {
         if let refFile = scoreAgainst {
             try scoreDER(result: result, refFile: refFile)
         }
+    }
+
+    /// Keep only diarized segments that mostly overlap Silero speech regions,
+    /// trimmed to the speech bounds — the same rule the pyannote pipeline
+    /// applies when its VAD filter is enabled.
+    static func maskedToSpeech(
+        _ result: DiarizationResult, speech: [SpeechSegment]
+    ) -> DiarizationResult {
+        let minDuration: Float = 0.3
+        var kept: [DiarizedSegment] = []
+        for segment in result.segments {
+            var overlap: Float = 0
+            var trimStart = segment.endTime
+            var trimEnd = segment.startTime
+            for region in speech {
+                let s = max(segment.startTime, region.startTime)
+                let e = min(segment.endTime, region.endTime)
+                if s < e {
+                    overlap += e - s
+                    trimStart = min(trimStart, s)
+                    trimEnd = max(trimEnd, e)
+                }
+            }
+            guard segment.duration > 0,
+                  overlap / segment.duration >= 0.5,
+                  trimEnd - trimStart >= minDuration else { continue }
+            kept.append(DiarizedSegment(
+                startTime: trimStart, endTime: trimEnd, speakerId: segment.speakerId))
+        }
+        return DiarizationResult(
+            segments: kept,
+            numSpeakers: Set(kept.map(\.speakerId)).count,
+            speakerEmbeddings: result.speakerEmbeddings)
     }
 
     private func runCommunity1(audio: [Float]) async throws {
