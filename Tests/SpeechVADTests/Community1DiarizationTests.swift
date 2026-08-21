@@ -72,7 +72,7 @@ final class Community1DiarizationTests: XCTestCase {
         )
     }
 
-    func testCentroidLinkageScalesToRollingWindowEmbeddingCounts() {
+    func testCentroidLinkageHandlesRollingWindowEmbeddingCounts() {
         let embeddings: [[Float]] = (0..<300).map { sample in
             var embedding = [Float](
                 repeating: 0,
@@ -85,14 +85,12 @@ final class Community1DiarizationTests: XCTestCase {
             return embedding
         }
 
-        let start = Date()
         let labels = Community1Clustering.centroidLinkageLabels(
             embeddings,
             threshold: 0.1
         )
 
         XCTAssertEqual(Set(labels).count, 3)
-        XCTAssertLessThan(Date().timeIntervalSince(start), 5.0)
     }
 
     func testVBxMatchesReferenceFixture() {

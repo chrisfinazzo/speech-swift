@@ -123,8 +123,8 @@ jobs:
             skip: 'testLargeModel|testSmall8bit|ForcedAlignerTests|StreamingASRTests|E2ECoreMLASRTests'
           - name: qwen3-asr-17b-mlx
             # Matches both `testLargeModel*` (1.7B-MLX-8bit) and
-            # `testSmall8bit*` (0.6B-MLX-8bit) methods inside
-            # E2EQwen3ASRIntegrationTests.
+            # `testSmall8bit*` (0.6B-MLX-8bit) methods across the integration
+            # and large-model hang regression classes.
             filter: 'testLargeModel|testSmall8bit'
             skip: ''
           - name: qwen3-asr-aligner-mlx
@@ -146,11 +146,11 @@ jobs:
             skip: ''
           - name: cosyvoice-mlx-coreml
             # Keep the full CosyVoice pipeline E2E, but skip the redundant
-            # LLM-only micro-test on hosted macos-15: after the full pipeline
-            # has already exercised `llm.generate`, this method can trip the
-            # virtualized runner's MLX/Metal command-buffer watchdog.
+            # LLM-only micro-tests on hosted macos-15: after the full pipeline
+            # has already exercised prefill and `llm.generate`, these methods
+            # can trip the virtualized runner's MLX/Metal command-buffer watchdog.
             filter: 'CosyVoiceTTSTests'
-            skip: 'testLLMGenerate5Tokens'
+            skip: 'testLLMGenerate5Tokens|testLLMPrefill'
 
     name: ${{ matrix.shard.name }}
     steps:
@@ -226,12 +226,11 @@ jobs:
           # Per-shard model override (parakeet -> fixed-shape iOS-5s); empty for
           # shards that don't set matrix.shard.modelId.
           PARAKEET_TEST_MODEL_ID: ${{ matrix.shard.modelId }}
-        run: |
-          if [ -n "${{ matrix.shard.skip }}" ]; then
-            swift test --skip-build --filter "${{ matrix.shard.filter }}" --skip "${{ matrix.shard.skip }}"
-          else
-            swift test --skip-build --filter "${{ matrix.shard.filter }}"
-          fi
+          SHARD_TEST_FILTER: ${{ matrix.shard.filter }}
+          SHARD_TEST_SKIP: ${{ matrix.shard.skip }}
+        # A fresh xctest process per selected class releases MLX/CoreML state
+        # before the next class while preserving method-level matrix filters.
+        run: ./scripts/test_shard_isolated.sh "$SHARD_TEST_FILTER" "$SHARD_TEST_SKIP"
 
       - name: Dump crash reports
         if: always() && steps.shard-filter.outputs.selected == 'true'
