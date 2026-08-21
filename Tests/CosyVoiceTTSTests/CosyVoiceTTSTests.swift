@@ -297,6 +297,11 @@ final class E2ECosyVoiceTokenizerTests: XCTestCase {
 
 final class E2ECosyVoiceForwardPassTests: XCTestCase {
 
+    override func tearDown() {
+        Memory.clearCache()
+        super.tearDown()
+    }
+
     func testHiFiGANForward() async throws {
         let dir = try await CosyVoiceTestWeights.resolve()
         let config = CosyVoiceHiFiGANConfig()
