@@ -480,3 +480,78 @@ final class E2ENemotronStreamingASRTests: XCTestCase {
             "English-only bundle should recover every content word; got \(matched)/\(expected)")
     }
 }
+
+/// Opt-in placement gate for Stenograf's Core ML preview candidate. Keeping it
+/// separate from the shared E2E model avoids retaining `.all` and CPU+ANE
+/// copies at once and makes the timing comparison meaningful.
+final class E2ENemotronComputePlacementTests: XCTestCase {
+    func testCPUAndNeuralEngineMatchesAllStreamingOutput() async throws {
+        guard ProcessInfo.processInfo.environment[
+            "NEMOTRON_COMPUTE_PLACEMENT_E2E"
+        ] == "1" else {
+            throw XCTSkip("set NEMOTRON_COMPUTE_PLACEMENT_E2E=1")
+        }
+        let audioURL = Bundle.module.url(
+            forResource: "test_audio", withExtension: "wav")!
+        let audio = try AudioFileLoader.load(
+            url: audioURL, targetSampleRate: 16_000)
+
+        let baseline = try await load(computeUnits: .all)
+        try baseline.warmUp()
+        let baselineStarted = Date()
+        let baselineText = try streamingText(model: baseline, audio: audio)
+        let baselineMilliseconds =
+            Date().timeIntervalSince(baselineStarted) * 1_000
+        baseline.unload()
+
+        let candidate = try await load(computeUnits: .cpuAndNeuralEngine)
+        try candidate.warmUp()
+        let candidateStarted = Date()
+        let candidateText = try streamingText(model: candidate, audio: audio)
+        let candidateMilliseconds =
+            Date().timeIntervalSince(candidateStarted) * 1_000
+
+        XCTAssertEqual(candidateText, baselineText)
+        XCTAssertFalse(candidateText.isEmpty)
+        print(String(
+            format:
+                "[NEMOTRON-PLACEMENT] all=%.2fms cpu+ane=%.2fms parity=%@",
+            baselineMilliseconds,
+            candidateMilliseconds,
+            candidateText == baselineText ? "yes" : "no"))
+    }
+
+    private func load(
+        computeUnits: MLComputeUnits
+    ) async throws -> NemotronStreamingASRModel {
+        if let local = localBundlePath() {
+            return try await NemotronStreamingASRModel.fromLocal(
+                bundleDir: local, computeUnits: computeUnits)
+        }
+        return try await NemotronStreamingASRModel.fromPretrained(
+            computeUnits: computeUnits)
+    }
+
+    private func streamingText(
+        model: NemotronStreamingASRModel,
+        audio: [Float]
+    ) throws -> String {
+        let session = try model.createSession(language: "en-US")
+        let chunkSamples =
+            model.config.streaming.chunkMs * model.config.sampleRate / 1_000
+        var last = ""
+        var cursor = 0
+        while cursor < audio.count {
+            let upper = min(audio.count, cursor + chunkSamples)
+            for partial in try session.pushAudio(Array(audio[cursor..<upper]))
+            where !partial.text.isEmpty {
+                last = partial.text
+            }
+            cursor = upper
+        }
+        for partial in try session.finalize() where !partial.text.isEmpty {
+            last = partial.text
+        }
+        return last
+    }
+}
