@@ -95,6 +95,6 @@ treating this port as benchmark-grade.
 - Glossary handling and the long tail of WeTextProcessing number grammars
   (units, ranges, roman numerals).
 - Upstream numerical parity checks.
-- Longer-form generation validation.
+- Longer-form listening checks beyond the segmented ASR round trip.
 - Public semantic sampling controls.
 - Subjective listening plus ASR roundtrip checks across the benchmark languages.
