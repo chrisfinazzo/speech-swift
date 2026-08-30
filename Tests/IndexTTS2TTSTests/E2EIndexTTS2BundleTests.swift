@@ -221,6 +221,45 @@ final class E2EIndexTTS2BundleTests: XCTestCase {
         XCTAssertLessThanOrEqual(wer, maxWER, "ASR roundtrip WER exceeded threshold")
     }
 
+    func testTokenizerMatchesUpstreamTokenIDs() async throws {
+        let tokenizer = try await loadTokenizer()
+
+        // Golden ids from the upstream text front end (`char_rep_map` +
+        // `tokenize_by_CJK_char`) and SentencePiece on the published `bpe.model`.
+        let cases: [(text: String, ids: [Int])] = [
+            ("你好世界", [10201, 208, 10201, 1260, 10201, 22, 10201, 3755]),
+            ("你好，这是一个中文合成测试。",
+             [10201, 208, 10201, 1260, 10202, 10201, 5935, 10201, 2474, 10201, 7, 10201, 34, 10201, 36,
+              10201, 2398, 10201, 680, 10201, 2043, 10201, 3110, 10201, 5551, 10203]),
+            ("你好世界是 hello world 的中文",
+             [10201, 208, 10201, 1260, 10201, 22, 10201, 3755, 10201, 2474, 11122, 10394, 10201, 3880,
+              10201, 36, 10201, 2398]),
+            ("你好！吗？", [10201, 208, 10201, 1260, 10201, 10481, 10201, 694, 10219]),
+            ("Hello \"world\" (ok): done.",
+             [11122, 10201, 10206, 10603, 10391, 10438, 10258, 10206, 10201, 10206, 11412, 10206,
+              10209, 10467, 10216]),
+            ("你好🙂", [10201, 208, 10201, 1260, 10201, 2]),
+            ("A2024B", [10210, 2, 10445]),
+            ("今天是2024年", [10201, 124, 10201, 1221, 10201, 2474, 10201, 2, 10201, 1698]),
+        ]
+        for (text, ids) in cases {
+            XCTAssertEqual(try tokenizer.encode(text), ids, "token ids for \(text)")
+        }
+    }
+
+    private func loadTokenizer() async throws -> IndexTTS2Tokenizer {
+        let env = ProcessInfo.processInfo.environment
+        if let path = env["INDEXTTS2_E2E_BPE_MODEL"], !path.isEmpty {
+            let url = URL(fileURLWithPath: path)
+            guard FileManager.default.fileExists(atPath: url.path) else {
+                throw XCTSkip("INDEXTTS2_E2E_BPE_MODEL not found at \(url.path)")
+            }
+            return try IndexTTS2Tokenizer(modelURL: url)
+        }
+        let model = try await loadModel()
+        return try XCTUnwrap(model.tokenizer, "bundle tokenizer failed to initialize")
+    }
+
     private func loadModel() async throws -> IndexTTS2TTSModel {
         let env = ProcessInfo.processInfo.environment
         if let bundlePath = env["INDEXTTS2_E2E_BUNDLE"], !bundlePath.isEmpty {
