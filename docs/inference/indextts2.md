@@ -39,9 +39,11 @@ reduce speaker similarity.
 
 The tokenizer mirrors the upstream text front end: CJK punctuation is rewritten
 (`。` → `.`), every CJK character gets its own word boundary, and Latin text is
-uppercased, so Mandarin and mixed Chinese/English input work as-is. The
-vocabulary has no digit pieces and there is no number normalizer yet, so write
-numbers as words (`二零二四年`, `twenty twenty-four`); digit runs become `<unk>`.
+uppercased, so Mandarin and mixed Chinese/English input work as-is. Numbers
+are read out before tokenization (`2024年3月5日` → `二零二四年三月五日`,
+`at 10:30 on the 21st` → `at ten thirty on the twenty first`), covering
+cardinals, years, dates, times, decimals, percentages, fractions, money,
+ordinals and negatives; anything beyond that should be written as words.
 
 ## CLI
 
