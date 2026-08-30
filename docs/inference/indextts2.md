@@ -37,6 +37,12 @@ For identity-first cloning, omit explicit emotion control and use
 `IndexTTS2SynthesisOptions` for tempo and pause shaping. High emotion weights can
 reduce speaker similarity.
 
+The tokenizer mirrors the upstream text front end: CJK punctuation is rewritten
+(`。` → `.`), every CJK character gets its own word boundary, and Latin text is
+uppercased, so Mandarin and mixed Chinese/English input work as-is. The
+vocabulary has no digit pieces and there is no number normalizer yet, so write
+numbers as words (`二零二四年`, `twenty twenty-four`); digit runs become `<unk>`.
+
 ## CLI
 
 Use a local exported bundle:
@@ -125,3 +131,10 @@ Useful diagnostic overrides are `INDEXTTS2_E2E_SEED`,
 `INDEXTTS2_E2E_SPEAKING_RATE`, `INDEXTTS2_E2E_MAX_PAUSE`,
 `INDEXTTS2_E2E_SEMANTIC_CODES`, `INDEXTTS2_E2E_SEMANTIC_ONLY=1`, and
 `INDEXTTS2_E2E_SEED_SWEEP=0-20`.
+
+`testTokenizerMatchesUpstreamTokenIDs` pins the native tokenizer to golden
+token ids from the upstream text front end (`char_rep_map` +
+`tokenize_by_CJK_char` + SentencePiece) for Mandarin, mixed-script,
+punctuation, and unknown-scalar inputs. It only needs `bpe.model`, so
+`INDEXTTS2_E2E_BPE_MODEL=/path/to/bpe.model` runs it without loading the
+full bundle.
