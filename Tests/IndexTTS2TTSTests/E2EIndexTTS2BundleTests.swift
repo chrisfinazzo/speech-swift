@@ -202,15 +202,22 @@ final class E2EIndexTTS2BundleTests: XCTestCase {
         let asrModelId = env["INDEXTTS2_E2E_ASR_MODEL"] ?? Self.defaultQwenASRModelId
         let asr = try await Qwen3ASRModel.fromPretrained(modelId: asrModelId)
         let asrStart = CFAbsoluteTimeGetCurrent()
-        let transcript = asr.transcribe(audio: audio, sampleRate: model.sampleRate, language: "english")
+        let language = env["INDEXTTS2_E2E_LANGUAGE"] ?? "english"
+        let transcript = asr.transcribe(audio: audio, sampleRate: model.sampleRate, language: language)
         let asrSec = CFAbsoluteTimeGetCurrent() - asrStart
         let asrRTF = asrSec / max(audioSec, 1e-6)
-        let wer = Self.wordErrorRate(reference: text, hypothesis: transcript)
+        // CJK references carry no word boundaries; score them per character.
+        let usesCharacters = text.unicodeScalars.contains(where: Self.isCJK)
+        let wer = usesCharacters
+            ? Self.characterErrorRate(reference: text, hypothesis: transcript)
+            : Self.wordErrorRate(reference: text, hypothesis: transcript)
         let maxWER = Double(env["INDEXTTS2_E2E_MAX_WER"] ?? "") ?? 0.25
 
         print(String(format:
-            "[IndexTTS2Roundtrip] asrModel=%@ transcript=\"%@\" wer=%.3f asrSec=%.3f asrRTF=%.3f maxWER=%.3f",
+            "[IndexTTS2Roundtrip] asrModel=%@ language=%@ metric=%@ transcript=\"%@\" wer=%.3f asrSec=%.3f asrRTF=%.3f maxWER=%.3f",
             asrModelId,
+            language,
+            usesCharacters ? "cer" : "wer",
             transcript,
             wer,
             asrSec,
@@ -419,8 +426,14 @@ final class E2EIndexTTS2BundleTests: XCTestCase {
     }
 
     private static func wordErrorRate(reference: String, hypothesis: String) -> Double {
-        let ref = normalizedWords(reference)
-        let hyp = normalizedWords(hypothesis)
+        editRate(reference: normalizedWords(reference), hypothesis: normalizedWords(hypothesis))
+    }
+
+    private static func characterErrorRate(reference: String, hypothesis: String) -> Double {
+        editRate(reference: normalizedCharacters(reference), hypothesis: normalizedCharacters(hypothesis))
+    }
+
+    private static func editRate(reference ref: [String], hypothesis hyp: [String]) -> Double {
         guard !ref.isEmpty else { return hyp.isEmpty ? 0 : 1 }
 
         var previous = Array(0...hyp.count)
@@ -435,6 +448,16 @@ final class E2EIndexTTS2BundleTests: XCTestCase {
             previous = current
         }
         return Double(previous[hyp.count]) / Double(ref.count)
+    }
+
+    private static func normalizedCharacters(_ text: String) -> [String] {
+        normalizedWords(text).flatMap { $0.map(String.init) }
+    }
+
+    private static func isCJK(_ scalar: Unicode.Scalar) -> Bool {
+        (0x2E80...0x9FFF).contains(scalar.value)
+            || (0xF900...0xFAFF).contains(scalar.value)
+            || (0x20000...0x2FFFF).contains(scalar.value)
     }
 
     private static func normalizedWords(_ text: String) -> [String] {

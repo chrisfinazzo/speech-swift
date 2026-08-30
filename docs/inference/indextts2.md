@@ -130,7 +130,9 @@ Useful diagnostic overrides are `INDEXTTS2_E2E_SEED`,
 `INDEXTTS2_E2E_EMOTION`, `INDEXTTS2_E2E_EMOTION_WEIGHT`,
 `INDEXTTS2_E2E_SPEAKING_RATE`, `INDEXTTS2_E2E_MAX_PAUSE`,
 `INDEXTTS2_E2E_SEMANTIC_CODES`, `INDEXTTS2_E2E_SEMANTIC_ONLY=1`, and
-`INDEXTTS2_E2E_SEED_SWEEP=0-20`.
+`INDEXTTS2_E2E_SEED_SWEEP=0-20`. `INDEXTTS2_E2E_LANGUAGE=zh` with a Mandarin
+`INDEXTTS2_E2E_TEXT` runs the round trip in Chinese; CJK references are scored
+by character error rate instead of WER.
 
 `testTokenizerMatchesUpstreamTokenIDs` pins the native tokenizer to golden
 token ids from the upstream text front end (`char_rep_map` +
