@@ -76,8 +76,11 @@ published `bpe.model` and mirrors the upstream text front end ahead of it:
 a word boundary before every CJK character so the lattice emits a standalone
 `▁` ahead of each one, and Latin uppercasing. Scalars without a piece become
 `<unk>` with runs merged, as in SentencePiece. The vocabulary has no digit
-pieces and the port has no number or glossary normalizer (upstream uses
-WeTextProcessing), so digit runs degrade to `<unk>`; write numbers as words.
+pieces, so `IndexTTS2TextNormalizer` reads numbers out first — cardinals,
+years, dates, times, decimals, percentages, fractions, money, ordinals,
+negatives — in Chinese or English depending on the text. It stands in for
+upstream's WeTextProcessing pass without porting its full grammars; glossary
+handling is not ported.
 
 ## Validation Status
 
@@ -89,8 +92,8 @@ treating this port as benchmark-grade.
 
 ## Remaining Work
 
-- Number and glossary normalization (upstream WeTextProcessing); digit runs
-  currently degrade to `<unk>`.
+- Glossary handling and the long tail of WeTextProcessing number grammars
+  (units, ranges, roman numerals).
 - Upstream numerical parity checks.
 - Longer-form generation validation.
 - Public semantic sampling controls.

@@ -206,11 +206,15 @@ final class E2EIndexTTS2BundleTests: XCTestCase {
         let transcript = asr.transcribe(audio: audio, sampleRate: model.sampleRate, language: language)
         let asrSec = CFAbsoluteTimeGetCurrent() - asrStart
         let asrRTF = asrSec / max(audioSec, 1e-6)
-        // CJK references carry no word boundaries; score them per character.
+        // ASR writes numbers as digits, so score both sides after the same
+        // number reading the synthesis used. CJK references carry no word
+        // boundaries; score them per character.
+        let scoredReference = IndexTTS2TextNormalizer.normalize(text)
+        let scoredHypothesis = IndexTTS2TextNormalizer.normalize(transcript)
         let usesCharacters = text.unicodeScalars.contains(where: Self.isCJK)
         let wer = usesCharacters
-            ? Self.characterErrorRate(reference: text, hypothesis: transcript)
-            : Self.wordErrorRate(reference: text, hypothesis: transcript)
+            ? Self.characterErrorRate(reference: scoredReference, hypothesis: scoredHypothesis)
+            : Self.wordErrorRate(reference: scoredReference, hypothesis: scoredHypothesis)
         let maxWER = Double(env["INDEXTTS2_E2E_MAX_WER"] ?? "") ?? 0.25
 
         print(String(format:
@@ -246,8 +250,18 @@ final class E2EIndexTTS2BundleTests: XCTestCase {
              [11122, 10201, 10206, 10603, 10391, 10438, 10258, 10206, 10201, 10206, 11412, 10206,
               10209, 10467, 10216]),
             ("你好🙂", [10201, 208, 10201, 1260, 10201, 2]),
-            ("A2024B", [10210, 2, 10445]),
-            ("今天是2024年", [10201, 124, 10201, 1221, 10201, 2474, 10201, 2, 10201, 1698]),
+            ("A2024B", [10210, 10270, 10456, 10380, 10361, 10462]),
+            ("今天是2024年",
+             [10201, 124, 10201, 1221, 10201, 2474, 10201, 83, 10201, 6500, 10201, 83, 10201, 1017, 10201, 1698]),
+            ("今天是2024年3月5日，温度是25.5度。",
+             [10201, 124, 10201, 1221, 10201, 2474, 10201, 83, 10201, 6500, 10201, 83, 10201, 1017, 10201, 1698,
+              10201, 12, 10201, 2544, 10201, 90, 10201, 2437, 10202, 10201, 3210, 10201, 1726, 10201, 2474,
+              10201, 83, 10201, 570, 10201, 90, 10201, 3393, 10201, 90, 10201, 1726, 10203]),
+            ("The meeting is at 10:30 on the 21st.",
+             [10204, 11762, 10218, 10244, 10472, 10561, 10226, 10204, 10380, 10315, 10216]),
+            ("It costs $3.50, about 50% off.",
+             [10215, 10985, 10208, 10321, 10681, 10601, 10201, 10336, 11394, 10208, 10209, 10251, 10601, 10532,
+              10375, 10216]),
         ]
         for (text, ids) in cases {
             XCTAssertEqual(try tokenizer.encode(text), ids, "token ids for \(text)")

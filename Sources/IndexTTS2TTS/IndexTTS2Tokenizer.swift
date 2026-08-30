@@ -43,10 +43,10 @@ public enum IndexTTS2TokenizerError: Error, LocalizedError, Equatable {
 ///    GPT was trained on. The vocabulary has no `▁`-prefixed CJK pieces.
 /// 3. Uppercasing of the non-CJK text.
 ///
+/// `IndexTTS2TextNormalizer` reads numbers out ahead of these steps, standing
+/// in for upstream's WeTextProcessing pass; glossary handling is not ported.
 /// Scalars without a piece become `<unk>`, with consecutive runs merged, as
-/// SentencePiece does. Upstream additionally runs a number and glossary
-/// normalizer (WeTextProcessing) before this point; this port does not, so
-/// digit runs degrade to `<unk>` and numbers should be written out as words.
+/// SentencePiece does.
 public struct IndexTTS2Tokenizer: Sendable {
     public static let maxInputScalars = 2_048
 
@@ -147,7 +147,7 @@ public struct IndexTTS2Tokenizer: Sendable {
             let unknownCount = ids.filter { $0 == unknownTokenId }.count
             if unknownCount > 0 {
                 AudioLog.inference.warning(
-                    "IndexTTS2 tokenizer mapped \(unknownCount) span(s) to <unk>; digits and unsupported symbols have no vocabulary pieces, write numbers as words.")
+                    "IndexTTS2 tokenizer mapped \(unknownCount) span(s) to <unk>; unsupported symbols have no vocabulary pieces.")
             }
         }
         return ids
@@ -182,7 +182,7 @@ public struct IndexTTS2Tokenizer: Sendable {
     // MARK: - Upstream text front end
 
     private func normalizedPieceText(for text: String) -> String {
-        let rewritten = Self.rewritePunctuation(in: text)
+        let rewritten = Self.rewritePunctuation(in: IndexTTS2TextNormalizer.normalize(text))
         let spaced = Self.separateCJKCharacters(in: rewritten).uppercased()
         let normalized = (spaced as NSString)
             .precomposedStringWithCompatibilityMapping
@@ -222,7 +222,7 @@ public struct IndexTTS2Tokenizer: Sendable {
 
     private static func rewritePunctuation(in text: String) -> String {
         let scalars = Array(text.unicodeScalars)
-        let rules = usesChineseFrontEnd(scalars) ? chinesePunctuationRewrites : punctuationRewrites
+        let rules = IndexTTS2TextNormalizer.usesChineseFrontEnd(text) ? chinesePunctuationRewrites : punctuationRewrites
         var output = String.UnicodeScalarView()
         var index = 0
         while index < scalars.count {
@@ -235,13 +235,6 @@ public struct IndexTTS2Tokenizer: Sendable {
             }
         }
         return String(output)
-    }
-
-    /// Upstream `use_chinese`: Han text, or text with no Latin letters at all.
-    private static func usesChineseFrontEnd(_ scalars: [Unicode.Scalar]) -> Bool {
-        let hasHan = scalars.contains { (0x4E00...0x9FFF).contains($0.value) }
-        let hasLatinLetter = scalars.contains { (0x41...0x5A).contains($0.value) || (0x61...0x7A).contains($0.value) }
-        return hasHan || !hasLatinLetter
     }
 
     /// Upstream `tokenize_by_CJK_char`: every CJK scalar becomes its own

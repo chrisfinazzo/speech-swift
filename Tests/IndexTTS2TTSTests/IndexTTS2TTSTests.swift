@@ -173,16 +173,17 @@ final class IndexTTS2TTSTests: XCTestCase {
 
         // SentencePiece emits `<unk>` for uncovered scalars and merges runs.
         XCTAssertEqual(try tokenizer.encode("你好🙂"), [3, 4, 3, 5, 3, 2])
-        XCTAssertEqual(try tokenizer.encode("A2024B"), [31, 2, 33])
+        XCTAssertEqual(try tokenizer.encode("A✿B"), [31, 2, 33])
     }
 
-    func testIndexTTS2TokenizerTreatsDigitRunsAsUnknown() throws {
+    func testIndexTTS2TokenizerReadsDigitsAsNumberWords() throws {
         let tokenizer = try IndexTTS2Tokenizer(pieces: Self.mandarinPieces)
 
-        // The vocabulary has no digit pieces; upstream expands numbers with a
-        // text normalizer this port does not have yet, so a digit run must
-        // degrade to one `<unk>` rather than reject the whole input.
-        XCTAssertEqual(try tokenizer.encode("今天是2024年"), [3, 19, 3, 20, 3, 8, 3, 2, 3, 21])
+        // The vocabulary has no digit pieces, so 2024年 is read out as
+        // 二零二四年 before the lattice sees it.
+        XCTAssertEqual(
+            try tokenizer.encode("今天是2024年"),
+            [3, 19, 3, 20, 3, 8, 3, 44, 3, 45, 3, 44, 3, 46, 3, 21])
     }
 
     /// Mirrors the published `bpe.model` layout: `<s>`/`</s>`/`<unk>` at
@@ -208,6 +209,7 @@ final class IndexTTS2TTSTests: XCTestCase {
             piece("▁A", -3), piece("A", -6), piece("B", -6),
             piece(",", -5.57), piece(".", -5.98), piece("!", -9.56), piece("?", -7.77), piece("'", -5.33),
             piece("▁,", -3.28), piece("▁.", -4.06), piece("▁?", -6.21), piece("...", -8), piece("-", -11.47),
+            piece("二", 0, .userDefined), piece("零", 0, .userDefined), piece("四", 0, .userDefined),
         ]
         return pieces
     }()
