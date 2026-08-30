@@ -2,6 +2,7 @@ import AudioCommon
 import Darwin
 import Foundation
 @testable import IndexTTS2TTS
+import MLX
 @testable import Qwen3ASR
 import XCTest
 
@@ -279,6 +280,53 @@ final class E2EIndexTTS2BundleTests: XCTestCase {
         }
         let model = try await loadModel()
         return try XCTUnwrap(model.tokenizer, "bundle tokenizer failed to initialize")
+    }
+
+    private static let defaultLongText =
+        "The quick brown fox jumps over the lazy dog near the river bank. "
+        + "Every morning the baker opens the shop before sunrise and sets out fresh bread. "
+        + "Later in the day the children walk home from school along the same road. "
+        + "By evening the whole street smells of coffee and rain."
+
+    func testLongTextSynthesisSplitsIntoSegments() async throws {
+        let model = try await loadModel()
+        let env = ProcessInfo.processInfo.environment
+        let referenceURL = try benchmarkReferenceURL(env: env)
+        let text = env["INDEXTTS2_E2E_LONG_TEXT"] ?? Self.defaultLongText
+        let options = try IndexTTS2SynthesisOptions(
+            maxInternalPauseDuration: Float(env["INDEXTTS2_E2E_MAX_PAUSE"] ?? ""),
+            maxTextTokensPerSegment: Int(env["INDEXTTS2_E2E_SEGMENT_TOKENS"] ?? "") ?? 30)
+        let tokenizer = try XCTUnwrap(model.tokenizer)
+        let segments = IndexTTS2TextSegmenter.split(
+            try tokenizer.tokenize(text), maxTokens: options.maxTextTokensPerSegment)
+        XCTAssertGreaterThanOrEqual(segments.count, 3, "long text should split into several segments")
+
+        _ = try model.prepareRuntime()
+        let conditioning = try model.prepareReferenceConditioning(referenceAudio: referenceURL)
+        let start = CFAbsoluteTimeGetCurrent()
+        let audio = try model.synthesize(text: text, conditioning: conditioning, synthesisOptions: options)
+        let synthesisSec = CFAbsoluteTimeGetCurrent() - start
+        let audioSec = Double(audio.count) / Double(model.sampleRate)
+        XCTAssertGreaterThan(audioSec, 8)
+        XCTAssertTrue(audio.allSatisfy(\.isFinite))
+        if let output = env["INDEXTTS2_E2E_OUTPUT"], !output.isEmpty {
+            try WAVWriter.write(samples: audio, sampleRate: model.sampleRate, to: URL(fileURLWithPath: output))
+        }
+        print(String(format: "[IndexTTS2LongText] segments=%d audioSec=%.2f synthesisSec=%.1f rtf=%.2f",
+                     segments.count, audioSec, synthesisSec, synthesisSec / max(audioSec, 1e-6)))
+
+        guard env["INDEXTTS2_E2E_ROUNDTRIP"] == "1" else { return }
+        Memory.clearCache()
+        let asr = try await Qwen3ASRModel.fromPretrained(
+            modelId: env["INDEXTTS2_E2E_ASR_MODEL"] ?? Self.defaultQwenASRModelId)
+        let language = env["INDEXTTS2_E2E_LANGUAGE"] ?? "english"
+        let transcript = asr.transcribe(audio: audio, sampleRate: model.sampleRate, language: language)
+        let usesCharacters = text.unicodeScalars.contains(where: Self.isCJK)
+        let wer = usesCharacters
+            ? Self.characterErrorRate(reference: text, hypothesis: transcript)
+            : Self.wordErrorRate(reference: text, hypothesis: transcript)
+        print(String(format: "[IndexTTS2LongTextRoundtrip] transcript=\"%@\" wer=%.3f", transcript, wer))
+        XCTAssertLessThanOrEqual(wer, Double(env["INDEXTTS2_E2E_MAX_WER"] ?? "") ?? 0.25)
     }
 
     private func loadModel() async throws -> IndexTTS2TTSModel {

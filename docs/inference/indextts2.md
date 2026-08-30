@@ -37,6 +37,15 @@ For identity-first cloning, omit explicit emotion control and use
 `IndexTTS2SynthesisOptions` for tempo and pause shaping. High emotion weights can
 reduce speaker similarity.
 
+Long text is synthesized segment by segment, as upstream does: the token
+sequence is cut after sentence-final punctuation (then commas and hyphens,
+then by length), neighbouring runs are merged back up to
+`maxTextTokensPerSegment` (default 120), each segment is generated on its own,
+and the pieces are joined with `segmentIntervalSilence` (default 0.2 s, capped
+by `maxInternalPauseDuration` when set). `generate(text:referenceAudio:…)` and
+`synthesize(text:conditioning:semanticOptions:synthesisOptions:)` take this
+path; the semantic-code entry points still generate one sequence.
+
 The tokenizer mirrors the upstream text front end: CJK punctuation is rewritten
 (`。` → `.`), every CJK character gets its own word boundary, and Latin text is
 uppercased, so Mandarin and mixed Chinese/English input work as-is. Numbers
