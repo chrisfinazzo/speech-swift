@@ -136,6 +136,18 @@ public final class KokoroTTSModel {
         Array(voiceEmbeddings.keys).sorted()
     }
 
+    /// Registers custom `word -> IPA` pronunciations for proper nouns missing from
+    /// the shipped dictionaries. Resolved ahead of the bundled dictionaries, suffix
+    /// stemming, and the neural G2P fallback.
+    ///
+    /// Keys are matched lowercased and must be single words — a key containing a
+    /// space, hyphen, or apostrophe is never looked up, because text is split on
+    /// punctuation before resolution. The IPA must use symbols from the model
+    /// vocabulary; anything else is dropped at tokenization.
+    public func addPronunciations(_ entries: [String: String]) {
+        phonemizer.addPronunciations(entries)
+    }
+
     // MARK: - Helpers
 
     private func createInt32Array(shape: [Int], values: [Int32]) throws -> MLMultiArray {
