@@ -71,9 +71,13 @@ sums the matching emotion rows by vector weight, and keeps the remaining weight
 on the reference emotion.
 
 `IndexTTS2Tokenizer` provides a native SentencePiece Unigram path for the
-published `bpe.model`. It mirrors upstream Latin uppercasing before BPE and uses
-the model-compatible Viterbi tokenization path. Full parity still needs upstream
-Chinese normalization and glossary handling.
+published `bpe.model` and mirrors the upstream text front end ahead of it:
+`char_rep_map` punctuation rewriting (`。` → `.`, quotes and brackets → `'`),
+a word boundary before every CJK character so the lattice emits a standalone
+`▁` ahead of each one, and Latin uppercasing. Scalars without a piece become
+`<unk>` with runs merged, as in SentencePiece. The vocabulary has no digit
+pieces and the port has no number or glossary normalizer (upstream uses
+WeTextProcessing), so digit runs degrade to `<unk>`; write numbers as words.
 
 ## Validation Status
 
@@ -85,7 +89,8 @@ treating this port as benchmark-grade.
 
 ## Remaining Work
 
-- Chinese normalizer parity.
+- Number and glossary normalization (upstream WeTextProcessing); digit runs
+  currently degrade to `<unk>`.
 - Upstream numerical parity checks.
 - Longer-form generation validation.
 - Public semantic sampling controls.
