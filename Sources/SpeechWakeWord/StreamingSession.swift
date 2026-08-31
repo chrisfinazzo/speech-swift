@@ -2,6 +2,92 @@ import CoreML
 import Foundation
 import AudioCommon
 
+struct ResolvedWakeWordDecodingOptions: Equatable {
+    let beam: Int
+    let numTrailingBlanks: Int
+    let blankPenalty: Float
+    let autoResetSeconds: Double
+}
+
+extension WakeWordDecodingOptions {
+    func resolved(
+        defaultNumTrailingBlanks: Int,
+        defaultAutoResetSeconds: Double
+    ) throws -> ResolvedWakeWordDecodingOptions {
+        guard Self.supportedBeamRange.contains(beam) else {
+            throw AudioModelError.invalidConfiguration(
+                model: "KWS-Zipformer",
+                reason: "beam must be in \(Self.supportedBeamRange)"
+            )
+        }
+
+        let effectiveTrailingBlanks = numTrailingBlanks ?? defaultNumTrailingBlanks
+        guard effectiveTrailingBlanks >= 0 else {
+            throw AudioModelError.invalidConfiguration(
+                model: "KWS-Zipformer",
+                reason: "numTrailingBlanks must not be negative"
+            )
+        }
+        guard blankPenalty.isFinite else {
+            throw AudioModelError.invalidConfiguration(
+                model: "KWS-Zipformer", reason: "blankPenalty must be finite"
+            )
+        }
+
+        let effectiveAutoResetSeconds = autoResetSeconds ?? defaultAutoResetSeconds
+        guard effectiveAutoResetSeconds.isFinite,
+              effectiveAutoResetSeconds > 0,
+              effectiveAutoResetSeconds <= Self.maximumAutoResetSeconds else {
+            throw AudioModelError.invalidConfiguration(
+                model: "KWS-Zipformer",
+                reason: "autoResetSeconds must be finite, positive, and at most "
+                    + "\(Self.maximumAutoResetSeconds)"
+            )
+        }
+
+        return ResolvedWakeWordDecodingOptions(
+            beam: beam,
+            numTrailingBlanks: effectiveTrailingBlanks,
+            blankPenalty: blankPenalty,
+            autoResetSeconds: effectiveAutoResetSeconds
+        )
+    }
+}
+
+/// Session-owned clock for decoder output frames. The transducer decoder resets
+/// its local frame counter after inactivity and emissions, while this clock
+/// advances until the enclosing WakeWordSession is explicitly reset.
+struct WakeWordStreamClock {
+    private(set) var nextFrameIndex = 0
+
+    mutating func stamp(_ detections: [KeywordDetection]) -> [KeywordDetection] {
+        let streamFrameIndex = nextFrameIndex
+        if nextFrameIndex < Int.max {
+            nextFrameIndex += 1
+        }
+
+        return detections.map { detection in
+            let epochOffset = streamFrameIndex - detection.frameIndex
+            let streamTimestamps = detection.timestamps.map { timestamp in
+                let (value, overflow) = epochOffset.addingReportingOverflow(timestamp)
+                return overflow ? Int.max : value
+            }
+            return KeywordDetection(
+                phrase: detection.phrase,
+                tokenIds: detection.tokenIds,
+                timestamps: detection.timestamps,
+                frameIndex: detection.frameIndex,
+                streamFrameIndex: streamFrameIndex,
+                streamTimestamps: streamTimestamps
+            )
+        }
+    }
+
+    mutating func reset() {
+        nextFrameIndex = 0
+    }
+}
+
 /// Stateful wrapper over encoder/decoder/joiner + the streaming KWS decoder.
 ///
 /// One ``WakeWordSession`` = one independent streaming audio source. Not
@@ -13,6 +99,7 @@ public final class WakeWordSession {
     private let joiner: MLModel
     private let fbankSession: KaldiFbank.StreamingSession
     private let kwsDecoder: StreamingKwsDecoder
+    private var streamClock = WakeWordStreamClock()
 
     // Per-frame mel features buffered for the encoder sliding window. Stores
     // only frames that have not yet been consumed by an encoder chunk.
@@ -28,8 +115,13 @@ public final class WakeWordSession {
         decoder: MLModel,
         joiner: MLModel,
         fbank: KaldiFbank,
-        contextGraph: ContextGraph
+        contextGraph: ContextGraph,
+        options: WakeWordDecodingOptions = WakeWordDecodingOptions()
     ) throws {
+        let resolvedOptions = try options.resolved(
+            defaultNumTrailingBlanks: config.kws.defaultNumTrailingBlanks,
+            defaultAutoResetSeconds: config.kws.autoResetSeconds
+        )
         self.config = config
         self.encoder = encoder
         self.decoder = decoder
@@ -69,11 +161,11 @@ public final class WakeWordSession {
             blankId: config.decoder.blankId,
             unkId: nil,
             contextSize: config.decoder.contextSize,
-            beam: 4,
-            numTrailingBlanks: config.kws.defaultNumTrailingBlanks,
-            blankPenalty: 0,
+            beam: resolvedOptions.beam,
+            numTrailingBlanks: resolvedOptions.numTrailingBlanks,
+            blankPenalty: resolvedOptions.blankPenalty,
             frameShiftSeconds: 0.04,
-            autoResetSeconds: config.kws.autoResetSeconds
+            autoResetSeconds: resolvedOptions.autoResetSeconds
         )
     }
 
@@ -89,6 +181,7 @@ public final class WakeWordSession {
                cachedEmbedLeftPad.count * MemoryLayout<Float>.stride)
         processedLens.dataPointer.assumingMemoryBound(to: Int32.self)[0] = 0
         kwsDecoder.reset()
+        streamClock.reset()
     }
 
     /// Push raw PCM and return any keyword detections that fired.
@@ -137,7 +230,11 @@ public final class WakeWordSession {
         while melBuffer.count >= totalIn {
             let window = Array(melBuffer.prefix(totalIn))
             let encoderFrames = try runEncoder(melWindow: window)
-            emissions.append(contentsOf: kwsDecoder.stepChunk(encoderFrames))
+            for frame in encoderFrames {
+                emissions.append(contentsOf: streamClock.stamp(
+                    kwsDecoder.step(encoderFrame: frame)
+                ))
+            }
             melBuffer.removeFirst(stride)
         }
         return emissions
