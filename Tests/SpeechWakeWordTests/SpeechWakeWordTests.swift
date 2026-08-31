@@ -850,6 +850,26 @@ final class E2ESpeechWakeWordTests: XCTestCase {
         })
     }
 
+    func testStreamingResetAfterEncoderPredictionRestartsFromWritableState() throws {
+        let d = try detector
+        let url = try XCTUnwrap(Bundle.module.url(
+            forResource: "kws_light_up", withExtension: "wav"
+        ))
+        let audio = try AudioFileLoader.load(url: url, targetSampleRate: 16_000)
+        let session = try d.createSession()
+
+        // An encoder prediction replaces the initially writable state arrays
+        // with Core ML-owned outputs. Some backends expose those outputs as
+        // read-only memory, so reset must allocate new state rather than
+        // zeroing the prediction buffers in place.
+        _ = try session.pushAudio(audio)
+        try session.reset()
+        var detections = try session.pushAudio(audio)
+        detections.append(contentsOf: try session.finalize())
+
+        XCTAssertTrue(detections.contains { $0.phrase == "LIGHT UP" })
+    }
+
     func testStreamingRealTimeFactor() throws {
         // Drive ~4s of audio in 320 ms chunks — target is the export's
         // measured RTF of 0.04. Generous ceiling so the test is robust on

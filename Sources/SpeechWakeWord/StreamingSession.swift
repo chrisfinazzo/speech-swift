@@ -173,13 +173,27 @@ public final class WakeWordSession {
     public func reset() throws {
         fbankSession.reset()
         melBuffer.removeAll(keepingCapacity: true)
-        for name in layerStates.keys {
-            let array = layerStates[name]!
+        var resetStates = [String: MLMultiArray]()
+        for (name, shape) in zip(config.encoder.layerStateNames, config.encoder.layerStateShapes) {
+            let array = try MLMultiArray(
+                shape: shape.map { NSNumber(value: $0) }, dataType: .float32
+            )
             memset(array.dataPointer, 0, array.count * MemoryLayout<Float>.stride)
+            resetStates[name] = array
         }
-        memset(cachedEmbedLeftPad.dataPointer, 0,
-               cachedEmbedLeftPad.count * MemoryLayout<Float>.stride)
-        processedLens.dataPointer.assumingMemoryBound(to: Int32.self)[0] = 0
+        layerStates = resetStates
+
+        let resetEmbedPad = try MLMultiArray(
+            shape: config.encoder.cachedEmbedLeftPadShape.map { NSNumber(value: $0) },
+            dataType: .float32
+        )
+        memset(resetEmbedPad.dataPointer, 0,
+               resetEmbedPad.count * MemoryLayout<Float>.stride)
+        cachedEmbedLeftPad = resetEmbedPad
+
+        let resetProcessedLens = try MLMultiArray(shape: [1], dataType: .int32)
+        resetProcessedLens.dataPointer.assumingMemoryBound(to: Int32.self)[0] = 0
+        processedLens = resetProcessedLens
         kwsDecoder.reset()
         streamClock.reset()
     }
