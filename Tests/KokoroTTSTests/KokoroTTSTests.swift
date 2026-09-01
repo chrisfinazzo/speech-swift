@@ -527,4 +527,25 @@ final class KokoroPronunciationTests: XCTestCase {
         XCTAssertEqual(phonemizer.tokenize("Tatiana"),
             [phonemizer.bosId, 7, 8, 7, 5, phonemizer.eosId])
     }
+
+    /// Documented constraint: only the English path consults the dictionaries.
+    /// `tokenize` routes every other language to a dedicated phonemizer, so an
+    /// injected entry is a no-op there.
+    func testInjectionAppliesToEnglishOnly() {
+        let others = ["fr", "es", "it", "pt", "hi", "ja", "zh"]
+        let phonemizer = makePhonemizer()
+        let baseline = others.map { phonemizer.tokenize("Tatiana", language: $0) }
+
+        phonemizer.addPronunciations(["tatiana": tatianaIPA])
+
+        let vocab = makeVocab()
+        XCTAssertEqual(phonemizer.tokenize("Tatiana", language: "en"),
+            [phonemizer.bosId] + tatianaIPA.compactMap { vocab[String($0)] } + [phonemizer.eosId],
+            "English must resolve the injected entry")
+
+        for (language, before) in zip(others, baseline) {
+            XCTAssertEqual(phonemizer.tokenize("Tatiana", language: language), before,
+                "\"\(language)\" must be unaffected by the injected entry")
+        }
+    }
 }

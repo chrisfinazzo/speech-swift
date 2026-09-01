@@ -134,6 +134,8 @@ tts.addPronunciations(["tatiana": "tɑtiˈɑnə"])
 
 Keys are matched lowercased and must be single words — text is split on whitespace and punctuation before resolution, so a key containing a space, hyphen, or apostrophe is never looked up. IPA must use symbols from the model vocabulary; anything else is silently dropped at tokenization. Call `addPronunciations` after the dictionaries are loaded — `loadDictionaries` replaces the gold dictionary wholesale.
 
+Entries apply to the English path only: the `language` argument selects a dedicated phonemizer for Chinese, Japanese, Italian, French, Spanish, Portuguese, and Hindi, and none of those consult the gold dictionary. The lookup is unlocked, so register entries before synthesis starts running concurrently on the same model.
+
 ## Voice Embeddings
 
 Each voice is a 256-dimensional Float32 vector stored in a per-voice JSON file. The embedding captures speaker identity and style characteristics. The first 128 dimensions are used by the decoder, the second 128 by the prosody model.

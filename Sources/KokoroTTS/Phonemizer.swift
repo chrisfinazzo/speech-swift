@@ -110,6 +110,13 @@ public final class KokoroPhonemizer {
     /// IPA must use symbols present in the model vocabulary — unknown characters
     /// are silently dropped by `tokenize`.
     ///
+    /// English only. `tokenize` routes zh, ja, it, fr, es, pt, and hi to their
+    /// own phonemizers, none of which consult `goldDict`, so entries added here
+    /// are a no-op for those languages.
+    ///
+    /// Not synchronized: `tokenize` reads `goldDict` without a lock, so register
+    /// entries before synthesis starts running concurrently.
+    ///
     /// Call this after `loadDictionaries(from:)`, which replaces the gold
     /// dictionary wholesale and would discard entries added before it.
     public func addPronunciations(_ entries: [String: String]) {

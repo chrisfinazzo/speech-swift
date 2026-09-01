@@ -144,6 +144,12 @@ public final class KokoroTTSModel {
     /// space, hyphen, or apostrophe is never looked up, because text is split on
     /// punctuation before resolution. The IPA must use symbols from the model
     /// vocabulary; anything else is dropped at tokenization.
+    ///
+    /// Entries apply to English only. Passing `language:` zh, ja, it, fr, es, pt,
+    /// or hi to `synthesize` selects a phonemizer that never sees them.
+    ///
+    /// The lookup is unlocked, so register entries before `synthesize` starts
+    /// running concurrently on this instance.
     public func addPronunciations(_ entries: [String: String]) {
         phonemizer.addPronunciations(entries)
     }
