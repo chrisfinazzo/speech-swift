@@ -15,6 +15,7 @@ The `AudioCommon` module defines shared protocols that provide model-agnostic in
 │  TranscriptionResult SpeechToSpeechModel                 │
 │                      VoiceActivityDetectionModel (VAD)   │
 │                      StreamingVADProvider (pipeline)      │
+│                      TurnCompletionProvider (pipeline)    │
 │                      SpeakerEmbeddingModel               │
 │                      SpeakerDiarizationModel             │
 │                      SpeakerExtractionCapable            │
@@ -128,6 +129,20 @@ public protocol StreamingVADProvider: AnyObject {
 ```
 
 **Conforming types:** `SileroVADModel`
+
+### TurnCompletionProvider (Pipeline)
+
+End-of-turn classifier consulted after the VAD reports a pause. A VAD only hears silence; a turn-completion model listens to the prosody of the whole utterance, so a mid-sentence pause keeps the agent waiting while a finished sentence gets an immediate reply. `StreamingVADProcessor` calls it on every confirmed pause and holds the segment open while the probability stays below `TurnCompletionConfig.threshold`. Maps to speech-core's `sc_turn_completion_vtable_t`.
+
+```swift
+public protocol TurnCompletionProvider: AnyObject {
+    /// Probability in `[0, 1]` that the turn is complete, given the audio of the
+    /// turn so far. Implementations look at the most recent seconds (Smart Turn: 8 s).
+    func turnCompleteProbability(audio: [Float], sampleRate: Int) throws -> Float
+}
+```
+
+**Conforming types:** `SmartTurnModel` (Core ML, `SpeechVAD`) — see [Smart Turn model doc](models/smart-turn-v3.md).
 
 ### SpeakerEmbeddingModel
 
@@ -460,12 +475,13 @@ Sources/
 │   ├── PersonaPlex.swift      PersonaPlexModel: SpeechToSpeechModel
 │   └── PersonaPlex+Protocols.swift
 │
-├── SpeechVAD/                 VAD, diarization, speaker embedding
+├── SpeechVAD/                 VAD, end-of-turn detection, diarization, speaker embedding
 │   ├── SpeechVAD.swift        PyannoteVADModel: VoiceActivityDetectionModel
 │   ├── SpeechVAD+Protocols.swift  Protocol conformances
 │   ├── SileroVAD.swift        SileroVADModel: VoiceActivityDetectionModel, StreamingVADProvider
 │   ├── SileroModel.swift      Silero VAD streaming network (STFT + encoder + LSTM)
 │   ├── StreamingVADProcessor.swift  Event-driven streaming wrapper
+│   ├── SmartTurn.swift        SmartTurnModel: TurnCompletionProvider (Smart Turn v3.2 end-of-turn classifier, CoreML)
 │   ├── DiarizationPipeline.swift  PyannoteDiarizationPipeline: SpeakerDiarizationModel, SpeakerExtractionCapable
 │   ├── DiarizationHelpers.swift   Shared helpers (merge, compact IDs, resample)
 │   ├── SortformerDiarizer.swift   SortformerDiarizer: SpeakerDiarizationModel (CoreML)
