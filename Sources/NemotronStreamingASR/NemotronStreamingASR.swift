@@ -84,6 +84,7 @@ public class NemotronStreamingASRModel {
         return try StreamingSession(
             config: config,
             languageSlot: slot,
+            language: language,
             encoder: encoder,
             decoder: decoder,
             joint: joint,
@@ -364,4 +365,12 @@ public class NemotronStreamingASRModel {
         return try MLModel(contentsOf: modelURL, configuration: mlConfig)
     }
 
+}
+
+extension NemotronStreamingASRModel: StreamingRecognitionModel {
+    public func makeStreamingSession(
+        language: String? = nil
+    ) throws -> any StreamingRecognitionSession {
+        try createSession(language: language)
+    }
 }

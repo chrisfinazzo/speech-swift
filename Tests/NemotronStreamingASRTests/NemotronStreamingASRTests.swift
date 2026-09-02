@@ -6,6 +6,12 @@ import CoreML
 
 final class NemotronStreamingConfigTests: XCTestCase {
 
+    func testModelsExposeUnifiedStreamingContract() {
+        func requireStreamingModel<T: StreamingRecognitionModel>(_: T.Type) {}
+        requireStreamingModel(NemotronStreamingASRModel.self)
+        requireStreamingModel(NemotronStreamingASRMLXModel.self)
+    }
+
     func testDefaultConfigIsMultilingual() {
         let config = NemotronStreamingConfig.default
         XCTAssertEqual(config.numMelBins, 128)
@@ -377,6 +383,29 @@ final class E2ENemotronStreamingASRTests: XCTestCase {
         XCTAssertTrue(last.isFinal)
         XCTAssertFalse(last.text.isEmpty)
         print("Streamed en-US final: \(last.text)")
+    }
+
+    func testUnifiedSessionConsumesIncrementalFileSource() async throws {
+        let m = try model
+        let audioURL = try XCTUnwrap(
+            Bundle.module.url(forResource: "test_audio", withExtension: "wav"))
+        let source = AudioFileLoader.stream(
+            url: audioURL,
+            options: AudioFileStreamOptions(
+                targetSampleRate: 16_000,
+                chunkDuration: 0.32))
+        let session = try m.makeStreamingSession(language: "en-US")
+        var updates: [StreamingRecognitionUpdate] = []
+
+        for try await chunk in source {
+            updates.append(contentsOf: try session.push(chunk))
+        }
+        updates.append(contentsOf: try session.finish())
+
+        let final = try XCTUnwrap(updates.last(where: \.isFinal))
+        XCTAssertFalse(final.text.isEmpty)
+        XCTAssertEqual(final.language, "en-US")
+        XCTAssertTrue(final.text.localizedCaseInsensitiveContains("replacement"))
     }
 
     func testStreamingSessionSilence() throws {

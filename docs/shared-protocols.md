@@ -11,6 +11,8 @@ The `AudioCommon` module defines shared protocols that provide model-agnostic in
 │  AudioChunk / CapturedAudioChunk                        │
 │                      SpeechGenerationModel (TTS)        │
 │  AlignedWord         SpeechRecognitionModel (STT)       │
+│                      StreamingRecognitionModel          │
+│                      StreamingRecognitionSession        │
 │  SpeechSegment       ForcedAlignmentModel                │
 │  TranscriptionResult SpeechToSpeechModel                 │
 │                      VoiceActivityDetectionModel (VAD)   │
@@ -75,6 +77,34 @@ The `transcribeWithLanguage` method has a default implementation that delegates 
 `ParakeetStreamingASRModel` additionally exposes streaming APIs — `createSession()` for long-lived streaming with cache state, `transcribeStream(audio:sampleRate:)` for chunked AsyncSequence output, and per-session `pushAudio` / `forceEndOfUtterance` / `finalize` for fine-grained VAD-driven pipelines. The batch `transcribe` entry point runs internal chunking and remains protocol-compatible.
 
 `NemotronStreamingASRModel` exposes the same shape of streaming APIs (`createSession()`, `transcribeStream`, `pushAudio`, `finalize`) minus `forceEndOfUtterance` — Nemotron has no explicit EOU head, so segmentation is driven by the caller (external VAD or punctuation-boundary heuristic) calling `finalize()` directly.
+
+### StreamingRecognitionModel and StreamingRecognitionSession
+
+Incremental recognizers expose one model-agnostic session contract. A session
+owns decoder/cache state, consumes ordered `CapturedAudioChunk` values, and
+returns a common partial/final result without reprocessing earlier chunks.
+
+```swift
+let source = AudioFileLoader.stream(
+    url: input,
+    options: AudioFileStreamOptions(targetSampleRate: 16_000))
+let session = try model.makeStreamingSession(language: "en-US")
+
+for try await chunk in source {
+    for update in try session.push(chunk) {
+        print(update.text, update.isFinal)
+    }
+}
+for update in try session.finish() {
+    print(update.text, update.isFinal)
+}
+```
+
+`ParakeetStreamingASRModel`, `NemotronStreamingASRModel`, and
+`NemotronStreamingASRMLXModel` conform. `StreamingRecognitionUpdate` preserves
+the shared text, final/EOU state, segment index, confidence, language, optional
+segment bounds, and word timings. Inputs must already use the session's
+`inputSampleRate`; capture and file sources can resample before delivery.
 
 ### ForcedAlignmentModel
 
@@ -286,6 +316,8 @@ public struct CapturedAudioChunk: Sendable, Equatable {
     public let samples: [Float]
     public let sampleRate: Int
     public let hostTime: UInt64?
+    public let frameIndex: Int64
+    public let isFinal: Bool
 }
 ```
 
@@ -295,6 +327,12 @@ For full-duplex capture, construct `AudioIO(enableAEC: true)` to apply Apple's
 echo-cancelled microphone input before timestamped chunks reach the caller.
 Listen-only clients can additionally pass `enablePlayback: false` to omit the
 streaming player from the engine graph.
+
+Finite sources also set `frameIndex` and mark their last chunk with `isFinal`.
+`AudioFileLoader.stream` is a pull-driven `AsyncSequence`, so a slow consumer
+does not create an unbounded producer queue. Multichannel input is averaged by
+default; pass `.first` or `.select([indices])` through
+`AudioFileStreamOptions.channelSelection` when channel routing is known.
 
 ### AudioChunk
 
@@ -413,10 +451,11 @@ for model in ttsModels {
 ```
 Sources/
 ├── AudioCommon/               Shared types, protocols, utilities
-│   ├── Protocols.swift        AudioChunk, AlignedWord, SpeechSegment, DiarizedSegment, 9 protocols
+│   ├── Protocols.swift        AudioChunk, recognition updates, aligned/diarized segments, 13 protocols
 │   ├── AudioModelError.swift  Unified error type for all model operations
 │   ├── Logging.swift          Centralized os.Logger instances (AudioLog)
 │   ├── AudioFileLoader.swift  WAV/audio file loading
+│   ├── AudioFileStream.swift  Bounded pull decoding, resampling, channel routing
 │   ├── WAVWriter.swift        WAV file writing
 │   ├── HuggingFaceDownloader.swift  Safetensors / asset download from HF Hub
 │   ├── Tokenizer.swift        BPE tokenizer
@@ -596,6 +635,32 @@ Long-running realtime model loads and generations emit lightweight
 `realtime.keepalive` events and websocket pong control frames periodically
 while no model output is ready. Clients can ignore these events or treat them
 as cold-start activity indicators.
+
+### Realtime server VAD
+
+Realtime sessions use explicit `input_audio_buffer.commit` by default. Enable
+automatic turn detection with a session update:
+
+```json
+{
+  "type": "session.update",
+  "session": {
+    "turn_detection": {
+      "type": "server_vad",
+      "threshold": 0.5,
+      "prefix_padding_ms": 300,
+      "silence_duration_ms": 500,
+      "max_turn_duration_ms": 120000
+    }
+  }
+}
+```
+
+The server then emits `input_audio_buffer.speech_started`,
+`input_audio_buffer.speech_stopped`, and `input_audio_buffer.committed` before
+the normal transcription events. Silence retains only the configured pre-roll
+and detection history, and ASR runs only after a speech turn closes. Set
+`turn_detection` to `null` or `{"type":"none"}` to restore manual commits.
 
 ### AudioModelError
 

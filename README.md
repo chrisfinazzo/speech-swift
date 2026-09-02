@@ -522,7 +522,7 @@ pipeline.pushAudio(micSamples)
 speech-server --port 8080
 ```
 
-Exposes every model via HTTP REST + WebSocket endpoints, including OpenAI-compatible APIs: a Realtime WebSocket at `/v1/realtime` and a transcription REST endpoint at `/v1/audio/transcriptions`. See [`Sources/AudioServer/`](Sources/AudioServer/).
+Exposes every model via HTTP REST + WebSocket endpoints, including OpenAI-compatible APIs: a Realtime WebSocket at `/v1/realtime` and a transcription REST endpoint at `/v1/audio/transcriptions`. Realtime sessions use explicit `input_audio_buffer.commit` by default; send `session.update` with `turn_detection.type` set to `server_vad` for Silero-based automatic speech start/end detection, prefix padding, and bounded turn length. See [`Sources/AudioServer/`](Sources/AudioServer/) and [Shared Protocols](docs/shared-protocols.md#realtime-server-vad).
 
 ## Papers
 
