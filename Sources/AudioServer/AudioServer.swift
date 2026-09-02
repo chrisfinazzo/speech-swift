@@ -875,7 +875,7 @@ func handleRealtimeWS(
                             case .tts: session.ttsVariant = v
                             case .s2s: session.s2sVariant = v
                             case .enhance, .music, .vad, .diarize,
-                                 .speaker, .separate, .sr:
+                                 .speaker, .separate, .sr, .turn:
                                 // Cataloged in the registry for discovery via
                                 // /v1/models, but the Realtime session protocol
                                 // has no slot for these — they're routed via

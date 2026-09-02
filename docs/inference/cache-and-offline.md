@@ -172,6 +172,7 @@ All models support both parameters:
 | `SileroVADModel` | `cacheDir`, `offlineMode` |
 | `PyannoteVADModel` | `cacheDir`, `offlineMode` |
 | `FireRedVADModel` | `cacheDir`, `offlineMode` |
+| `SmartTurnModel` | `cacheDir`, `offlineMode` |
 | `WeSpeakerModel` | `cacheDir`, `offlineMode` |
 | `ReDimNet2SpeakerModel` | `cacheDir`, `offlineMode` |
 | `SpeechEnhancer` | `cacheDir`, `offlineMode` |

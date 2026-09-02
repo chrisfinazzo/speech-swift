@@ -264,6 +264,18 @@ public protocol StreamingVADProvider: AnyObject {
     func resetState()
 }
 
+/// Decides whether the user has finished their turn once the VAD reports a pause.
+///
+/// A VAD only hears silence; a turn-completion model listens to the prosody of
+/// the whole utterance, so a mid-sentence pause keeps the agent waiting while a
+/// finished sentence gets an immediate reply. Maps to speech-core's
+/// `sc_turn_completion_vtable_t`.
+public protocol TurnCompletionProvider: AnyObject {
+    /// Probability in `[0, 1]` that the turn is complete, given the audio of the
+    /// turn so far. Implementations look at the most recent seconds (Smart Turn: 8 s).
+    func turnCompleteProbability(audio: [Float], sampleRate: Int) throws -> Float
+}
+
 // MARK: - Speaker Diarization
 
 /// A speech segment with an assigned speaker identity.
