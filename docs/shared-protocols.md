@@ -162,7 +162,7 @@ public protocol StreamingVADProvider: AnyObject {
 
 ### TurnCompletionProvider (Pipeline)
 
-End-of-turn classifier consulted after the VAD reports a pause. A VAD only hears silence; a turn-completion model listens to the prosody of the whole utterance, so a mid-sentence pause keeps the agent waiting while a finished sentence gets an immediate reply. `StreamingVADProcessor` calls it on every confirmed pause and holds the segment open while the probability stays below `TurnCompletionConfig.threshold`. Maps to speech-core's `sc_turn_completion_vtable_t`.
+End-of-turn classifier consulted after the VAD reports a pause. A VAD only hears silence; a turn-completion model listens to the prosody of the whole utterance, so a mid-sentence pause keeps the agent waiting while a finished sentence gets an immediate reply. `StreamingVADProcessor` calls it on every confirmed pause and holds the segment open while the probability stays below `TurnCompletionConfig.threshold`. `VoicePipeline.setTurnCompletion(_:)` attaches it to the speech-core engine with the same semantics (`PipelineConfig.turnCompletionThreshold` / `turnCompletionMaxSilence`); it maps to speech-core's `sc_turn_completion_vtable_t`.
 
 ```swift
 public protocol TurnCompletionProvider: AnyObject {

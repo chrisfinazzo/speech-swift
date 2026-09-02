@@ -9,7 +9,7 @@ Turn runs once per confirmed VAD pause: a finished sentence gets an immediate
 reply, a mid-sentence pause keeps the agent waiting.
 
 It is not a VAD and does not detect speech on its own. Pair it with
-`StreamingVADProcessor`, which decides when to ask.
+`StreamingVADProcessor` or `VoicePipeline`, which decide when to ask.
 
 ## Source
 
@@ -99,6 +99,15 @@ The settings live in `TurnCompletionConfig` (`threshold`, `maxSilenceDuration`,
   the silence cap ends a held turn without re-running the classifier, a brief
   blip inside a hold does not resume it, `flush()` settles a hold, a throwing
   classifier fails open, `reset()` clears the hold.
+- `Tests/SpeechCoreTests/VoicePipelineTurnCompletionTests.swift` (no model
+  download): `TurnCompletionBridgeTests` checks the `PipelineConfig`
+  defaults and the C vtable bridge in isolation — audio and sample rate are
+  forwarded, the provider's probability is returned, a throwing provider
+  yields 1.0; `VoicePipelineTurnCompletionTests` drives the speech-core
+  engine with stub STT/TTS/VAD and a scripted classifier — a vetoed pause
+  holds the turn until `turnCompletionMaxSilence`, resumed speech is one
+  turn, a complete pause ends it, a throwing classifier fails open, and
+  detaching restores silence-only behaviour.
 - `E2ESmartTurnTests` (downloads the model, or reads a local copy from
   `SMART_TURN_COREML_MODEL_DIR` in offline mode): a finished spoken sentence
   followed by three seconds of pause scores above 0.85 (the fp32 reference is
@@ -171,9 +180,37 @@ yet.
 
 ## VoicePipeline
 
-`VoicePipeline` (the speech-core voice agent) still ends turns on VAD silence
-alone. The next SpeechCore.xcframework release adds
-`sc_pipeline_set_turn_completion`, which takes the `sc_turn_completion_vtable_t`
-that `TurnCompletionProvider` maps to; wiring a `SmartTurnModel` into
-`VoicePipeline` through it is a follow-up once that release ships. Until then
-Smart Turn is available through `StreamingVADProcessor` and the CLI.
+`VoicePipeline` (the speech-core voice agent) accepts the same classifier
+through `setTurnCompletion(_:)`, which bridges `TurnCompletionProvider` to
+speech-core's `sc_turn_completion_vtable_t`. Call it before `start()`; `nil`
+detaches.
+
+```swift
+import SpeechCore
+import SpeechVAD
+
+let turn = try await SmartTurnModel.fromPretrained()
+try turn.prewarm()
+
+var config = PipelineConfig()
+config.turnCompletionThreshold = 0.5    // default
+config.turnCompletionMaxSilence = 2.0   // default, 0 = never
+
+let pipeline = VoicePipeline(stt: asr, tts: tts, vad: vad, config: config) { event in
+    // .speechEnded now means "pause confirmed and turn complete"
+}
+pipeline.setTurnCompletion(turn)
+pipeline.start()
+```
+
+Semantics match `StreamingVADProcessor`: the engine asks once per confirmed
+pause (and at the eager-STT moment) with the audio of the turn so far, at the
+VAD sample rate. A probability at or above `turnCompletionThreshold` ends the
+turn; below it the pipeline keeps listening, speech that resumes continues the
+same turn with no second `speechStarted`, and `turnCompletionMaxSilence` of
+continued silence ends the held turn anyway. Eager STT respects the veto; the
+`maxUtteranceDuration` force-split bypasses the classifier. The audio before
+the VAD onset comes from `preSpeechBufferDuration` (the pipeline's
+counterpart of `preRollDuration`). A classifier that throws counts as
+"complete" and the error is logged. Details:
+[Voice pipeline](../audio/voice-pipeline.md#end-of-turn-classifier-smart-turn).
