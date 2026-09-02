@@ -11,7 +11,8 @@ only available where CoreML can be imported.
 Run it once per confirmed VAD pause, on the audio of the turn so far. It does
 not need to run on every chunk: it looks at up to eight seconds of audio and
 one call per pause is enough. `StreamingVADProcessor` does this when a
-`TurnCompletionProvider` is attached:
+`TurnCompletionProvider` is attached, and so does `VoicePipeline` (see
+[below](#voicepipeline)):
 
 - pause confirmed, probability at or above `threshold`: `.speechEnded` fires
   as usual;
@@ -60,10 +61,53 @@ One call takes a few milliseconds on Apple Silicon, so it adds nothing
 noticeable to the pause the VAD already waited for. Call `prewarm()` after
 loading so the first real pause does not pay for graph compilation.
 
+## VoicePipeline
+
+The speech-core voice agent takes the same model through
+`VoicePipeline.setTurnCompletion(_:)`, called before `start()` (`nil`
+detaches). Once attached, a VAD pause only ends the user's turn when the
+probability reaches `PipelineConfig.turnCompletionThreshold`; below it the
+pipeline keeps listening — speech that resumes continues the same turn — until
+`PipelineConfig.turnCompletionMaxSilence` elapses. Eager STT respects the veto.
+
+```swift
+import SpeechCore
+import SpeechVAD
+
+let turn = try await SmartTurnModel.fromPretrained()
+try turn.prewarm()
+
+var config = PipelineConfig()
+config.mode = .echo
+config.turnCompletionThreshold = 0.5
+config.turnCompletionMaxSilence = 2.0
+
+let pipeline = VoicePipeline(stt: asr, tts: tts, vad: vad, config: config) { event in
+    print(event)
+}
+pipeline.setTurnCompletion(turn)
+pipeline.start()
+```
+
+| `TurnCompletionConfig` (processor) | `PipelineConfig` (pipeline) | Default |
+|---|---|---|
+| `threshold` | `turnCompletionThreshold` | 0.5 |
+| `maxSilenceDuration` | `turnCompletionMaxSilence` | 2.0 s |
+| `preRollDuration` | `preSpeechBufferDuration` (audio kept before the VAD onset) | 0.5 s / 0.6 s |
+
+The classifier runs synchronously on the audio thread inside `pushAudio(_:)`,
+once per pause, so `prewarm()` after loading matters here too. The pipeline's
+`minSilenceDuration` decides when a pause is confirmed and the classifier is
+asked. Pipeline events do not carry the probability; wrap the provider if you
+want to log it. The `Examples/SpeechDemo` Echo tab and `Examples/iOSEchoDemo`
+attach Smart Turn this way.
+
 ## Failure behaviour
 
 A classifier that throws counts as "complete": the segment ends as it would
-without Smart Turn. `lastTurnCompletionProbability` is `nil` after such a call.
+without Smart Turn. `lastTurnCompletionProbability` is `nil` after such a call
+in `StreamingVADProcessor`; `VoicePipeline` logs the error and returns 1.0 to
+the engine.
 
 ## CLI
 
