@@ -44,7 +44,7 @@ public enum VADEvent: Sendable {
 /// ```
 public final class StreamingVADProcessor {
 
-    private let model: StreamingVADProvider
+    private let model: any StreamingVADProvider
     private let config: VADConfig
     private let chunkSize: Int
     private let sampleRate: Int
@@ -111,7 +111,7 @@ public final class StreamingVADProcessor {
 
     /// Create a streaming VAD processor over any chunked VAD provider.
     public init(
-        provider: StreamingVADProvider,
+        provider: any StreamingVADProvider,
         config: VADConfig = .sileroDefault,
         turnCompletion: TurnCompletionProvider? = nil,
         turnCompletionConfig: TurnCompletionConfig = .default
@@ -136,10 +136,12 @@ public final class StreamingVADProcessor {
     public func process(samples: [Float]) -> [VADEvent] {
         buffer.append(contentsOf: samples)
         var events = [VADEvent]()
+        var consumed = 0
 
-        while buffer.count >= chunkSize {
-            let chunk = Array(buffer.prefix(chunkSize))
-            buffer.removeFirst(chunkSize)
+        while buffer.count - consumed >= chunkSize {
+            let end = consumed + chunkSize
+            let chunk = Array(buffer[consumed..<end])
+            consumed = end
 
             let prob = model.processChunk(chunk)
             let time = Float(chunkCount) * chunkDuration
@@ -147,6 +149,9 @@ public final class StreamingVADProcessor {
             rememberAudio(chunk)
 
             events.append(contentsOf: processProb(prob, time: time))
+        }
+        if consumed > 0 {
+            buffer.removeFirst(consumed)
         }
 
         return events
