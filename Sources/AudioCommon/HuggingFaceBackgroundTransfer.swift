@@ -109,6 +109,37 @@ struct BackgroundTransferItem: Codable, Sendable, Equatable {
     }
 }
 
+/// Decides who owns the system transfer when one in-process waiter ends.
+///
+/// Cancelling an async caller must only detach that caller. The background
+/// session is deliberately longer-lived than any one task, and a replacement
+/// caller (or a relaunched process) can adopt its download. A transport failure
+/// is different: its sibling requests belong to the same failed assembly and
+/// must be torn down before the retry ladder starts another pass.
+enum BackgroundTransferEndSource {
+    case callerCancellation
+    case transportFailure
+
+    var cancelsSystemTransfer: Bool {
+        self == .transportFailure
+    }
+}
+
+enum BackgroundTransferAdoption {
+    static func remainingSlots(
+        requested: Set<Int>,
+        completed: Set<Int>
+    ) -> Set<Int> {
+        requested.subtracting(completed)
+    }
+}
+
+enum BackgroundTransferWaiterOwnership {
+    static func mayFinish(current: UUID, requested: UUID?) -> Bool {
+        requested == nil || current == requested
+    }
+}
+
 /// Runs transfers on a background `URLSession` and files the results.
 ///
 /// One coordinator per session identifier, kept for the life of the process:
@@ -119,6 +150,7 @@ final class BackgroundTransferCoordinator: NSObject, @unchecked Sendable {
     private struct Group {
         let label: String
         var outstanding: Set<Int>
+        var waiterID: UUID
         var continuation: CheckedContinuation<Void, Error>?
         var finished = false
     }
@@ -202,7 +234,18 @@ final class BackgroundTransferCoordinator: NSObject, @unchecked Sendable {
         let inFlight = await slotsInFlight(forGroup: key)
         register(writer: writer, progress: progress, forGroup: key)
 
-        let toStart = chunks.filter { !inFlight.contains($0.index) }
+        // A task adopted from an earlier process can finish between the
+        // `allTasks` snapshot above and installing this process's writer. Its
+        // delegate stores that range beside the staging file because there was
+        // no writer yet. Reconcile once more after registration so the new
+        // waiter cannot count an already-landed range forever.
+        BackgroundTransferCoordinator.spliceHeldChunks(
+            staging: staging, chunks: chunks, writer: writer)
+        let completed = writer.completedChunkIndices()
+
+        let toStart = chunks.filter {
+            !inFlight.contains($0.index) && !completed.contains($0.index)
+        }
         let items = toStart.map { chunk in
             BackgroundTransferItem(
                 label: label,
@@ -220,7 +263,8 @@ final class BackgroundTransferCoordinator: NSObject, @unchecked Sendable {
             label: label,
             outstanding: Set(chunks.map(\.index)),
             starting: items,
-            from: url)
+            from: url,
+            completedSlots: { writer.completedChunkIndices() })
     }
 
     /// Fetch one whole file, small enough not to be worth ranging.
@@ -249,7 +293,12 @@ final class BackgroundTransferCoordinator: NSObject, @unchecked Sendable {
             label: label,
             outstanding: [0],
             starting: items,
-            from: url)
+            from: url,
+            completedSlots: {
+                HuggingFaceDownloader.localFileSize(destination) == file.size
+                    ? [0]
+                    : []
+            })
     }
 
     private func register(
@@ -268,21 +317,16 @@ final class BackgroundTransferCoordinator: NSObject, @unchecked Sendable {
         label: String,
         outstanding: Set<Int>,
         starting items: [BackgroundTransferItem],
-        from url: URL
+        from url: URL,
+        completedSlots: () -> Set<Int>
     ) async throws {
-        let tasks = items.compactMap { item -> URLSessionDownloadTask? in
-            var request = HuggingFaceDownloader.makeHubRequest(url: url)
-            if let start = item.rangeStart, let end = item.rangeEnd {
-                request.setValue("bytes=\(start)-\(end)", forHTTPHeaderField: "Range")
-            }
-            guard let description = item.encoded() else { return nil }
-            let task = session.downloadTask(with: request)
-            task.taskDescription = description
-            return task
+        let describedItems = items.compactMap { item in
+            item.encoded().map { (item, $0) }
         }
-        guard tasks.count == items.count else {
+        guard describedItems.count == items.count else {
             throw DownloadError.failedToDownload("\(label): could not describe a background transfer")
         }
+        let waiterID = UUID()
 
         try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
@@ -293,27 +337,50 @@ final class BackgroundTransferCoordinator: NSObject, @unchecked Sendable {
                     return
                 }
                 lock.lock()
+                // A delegate can land an adopted task before this waiter is
+                // registered. Read the disk-backed completion state while
+                // holding the same lock used by `complete`: either the range
+                // is already excluded here, or the delegate observes the new
+                // group and removes it afterward.
+                let remaining = BackgroundTransferAdoption.remainingSlots(
+                    requested: outstanding,
+                    completed: completedSlots()
+                )
+                guard !remaining.isEmpty else {
+                    lock.unlock()
+                    continuation.resume()
+                    return
+                }
                 if var existing = groups[key] {
                     // Another caller in this process is already waiting on the
                     // same file. Two waiters need two continuations; the older
                     // one loses rather than being left unresumed.
                     existing.continuation?.resume(throwing: CancellationError())
                     existing.continuation = continuation
-                    existing.outstanding = outstanding
+                    existing.outstanding = remaining
+                    existing.waiterID = waiterID
                     existing.finished = false
                     groups[key] = existing
                 } else {
                     groups[key] = Group(
                         label: label,
-                        outstanding: outstanding,
+                        outstanding: remaining,
+                        waiterID: waiterID,
                         continuation: continuation)
                 }
                 lock.unlock()
-                tasks.forEach { $0.resume() }
+                for (item, description) in describedItems where remaining.contains(item.slot) {
+                    var request = HuggingFaceDownloader.makeHubRequest(url: url)
+                    if let start = item.rangeStart, let end = item.rangeEnd {
+                        request.setValue("bytes=\(start)-\(end)", forHTTPHeaderField: "Range")
+                    }
+                    let task = session.downloadTask(with: request)
+                    task.taskDescription = description
+                    task.resume()
+                }
             }
         } onCancel: {
-            cancelTasks(inGroup: key)
-            finish(group: key, with: CancellationError())
+            finish(group: key, ownedBy: waiterID, with: CancellationError())
         }
     }
 
@@ -341,9 +408,29 @@ final class BackgroundTransferCoordinator: NSObject, @unchecked Sendable {
         }
     }
 
-    private func finish(group key: String, with error: Error?) {
+    private func end(
+        group key: String,
+        with error: Error,
+        source: BackgroundTransferEndSource
+    ) {
+        finish(group: key, with: error)
+        if source.cancelsSystemTransfer {
+            cancelTasks(inGroup: key)
+        }
+    }
+
+    private func finish(
+        group key: String,
+        ownedBy waiterID: UUID? = nil,
+        with error: Error?
+    ) {
         lock.lock()
-        guard let group = groups[key], !group.finished else {
+        guard let group = groups[key],
+              !group.finished,
+              BackgroundTransferWaiterOwnership.mayFinish(
+                  current: group.waiterID,
+                  requested: waiterID
+              ) else {
             lock.unlock()
             return
         }
@@ -389,8 +476,7 @@ extension BackgroundTransferCoordinator: URLSessionDownloadDelegate {
         } catch {
             AudioLog.download.error(
                 "\(item.label, privacy: .public): background transfer rejected: \(error.localizedDescription, privacy: .public)")
-            finish(group: item.groupKey, with: error)
-            cancelTasks(inGroup: item.groupKey)
+            end(group: item.groupKey, with: error, source: .transportFailure)
             return
         }
         reportLanded(item)
@@ -421,13 +507,18 @@ extension BackgroundTransferCoordinator: URLSessionDownloadDelegate {
         guard let error,
               let item = BackgroundTransferItem.decoded(from: task.taskDescription)
         else { return }
-        // A cancelled task is this coordinator tearing a failed group down;
-        // reporting it would replace the real reason with the tidy-up.
-        if (error as NSError).code == NSURLErrorCancelled { return }
+        // Usually cancellation is this coordinator tearing a failed group
+        // down, after that group's real error was already delivered. A retry
+        // can adopt one of those tasks before URLSession publishes its final
+        // state, though. Finish that newer waiter instead of letting it wait
+        // forever for a completion the cancelled task can never deliver.
+        if (error as NSError).code == NSURLErrorCancelled {
+            finish(group: item.groupKey, with: error)
+            return
+        }
         AudioLog.download.error(
             "\(item.label, privacy: .public): background transfer failed: \(error.localizedDescription, privacy: .public)")
-        finish(group: item.groupKey, with: error)
-        cancelTasks(inGroup: item.groupKey)
+        end(group: item.groupKey, with: error, source: .transportFailure)
     }
 
     func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
@@ -478,6 +569,27 @@ extension BackgroundTransferCoordinator: URLSessionDownloadDelegate {
         // the staging file and spliced by whoever asks for this file next.
         guard let writer else {
             try holdForLaterSplice(location: location, item: item, chunkIndex: chunkIndex)
+
+            // The adopter may have installed its writer after the lookup
+            // above but before this range reached the held path. Recheck once
+            // the bytes are durable. If the writer exists now, splice this
+            // range immediately; otherwise the adopter's post-registration
+            // sweep will find it. Either ordering closes the handoff gap.
+            lock.lock()
+            let adoptedWriter = writers[item.groupKey]
+            lock.unlock()
+            if let adoptedWriter {
+                let chunk = DownloadChunk(
+                    index: chunkIndex,
+                    start: start,
+                    end: start + item.length - 1
+                )
+                _ = BackgroundTransferCoordinator.spliceHeldChunk(
+                    staging: URL(fileURLWithPath: item.destination),
+                    chunk: chunk,
+                    writer: adoptedWriter
+                )
+            }
             return
         }
         try writer.write(Data(contentsOf: location), at: start, chunkIndex: chunkIndex)
@@ -518,20 +630,33 @@ extension BackgroundTransferCoordinator: URLSessionDownloadDelegate {
         chunks: [DownloadChunk],
         writer: ChunkedFileWriter
     ) {
-        let fileManager = FileManager.default
         for chunk in chunks {
-            let held = heldChunkURL(staging: staging, chunkIndex: chunk.index)
-            guard fileManager.fileExists(atPath: held.path),
-                  HuggingFaceDownloader.localFileSize(held) == chunk.length,
-                  let data = try? Data(contentsOf: held)
-            else { continue }
-            do {
-                try writer.write(data, at: chunk.start, chunkIndex: chunk.index)
-                try? fileManager.removeItem(at: held)
-            } catch {
-                AudioLog.download.error(
-                    "could not splice held chunk \(chunk.index): \(error.localizedDescription, privacy: .public)")
-            }
+            _ = spliceHeldChunk(staging: staging, chunk: chunk, writer: writer)
+        }
+    }
+
+    /// Splice one range that became durable while ownership moved from the
+    /// system session to an in-process writer.
+    @discardableResult
+    static func spliceHeldChunk(
+        staging: URL,
+        chunk: DownloadChunk,
+        writer: ChunkedFileWriter
+    ) -> Bool {
+        let fileManager = FileManager.default
+        let held = heldChunkURL(staging: staging, chunkIndex: chunk.index)
+        guard fileManager.fileExists(atPath: held.path),
+              HuggingFaceDownloader.localFileSize(held) == chunk.length,
+              let data = try? Data(contentsOf: held)
+        else { return false }
+        do {
+            try writer.write(data, at: chunk.start, chunkIndex: chunk.index)
+            try? fileManager.removeItem(at: held)
+            return true
+        } catch {
+            AudioLog.download.error(
+                "could not splice held chunk \(chunk.index): \(error.localizedDescription, privacy: .public)")
+            return false
         }
     }
 }

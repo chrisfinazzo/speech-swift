@@ -118,6 +118,12 @@ func application(
 
 Everything else is unchanged: the same ranged chunks, the same staging file and
 sidecar, the same resume point. What changes is who performs the transfer.
+Cancelling the async task that is currently waiting for a background download
+only detaches that waiter; it does not cancel the system-owned requests. A new
+caller or a relaunched process adopts the requests already in flight.
+The adopter reconciles both the staging sidecar and ranges delivered during the
+handoff before it installs its waiter, so a range completed at that boundary
+cannot remain falsely outstanding.
 
 It is opt-in, and `nil` — the default — keeps the in-process session, because
 a background session is not free:

@@ -72,6 +72,151 @@ final class BackgroundTransferItemTests: XCTestCase {
     }
 }
 
+/// A background URLSession owns its requests independently of the async task
+/// currently waiting for them. Keeping that distinction is what lets a retry
+/// or a relaunched process adopt work already in flight.
+final class BackgroundTransferOwnershipTests: XCTestCase {
+
+    func testCancellingAWaiterKeepsTheSystemTransferAlive() {
+        XCTAssertFalse(
+            BackgroundTransferEndSource.callerCancellation.cancelsSystemTransfer)
+    }
+
+    func testATransportFailureTearsDownSiblingRequests() {
+        XCTAssertTrue(
+            BackgroundTransferEndSource.transportFailure.cancelsSystemTransfer)
+    }
+
+    func testAReplacedWaiterCannotFinishItsReplacement() {
+        let current = UUID()
+        let replaced = UUID()
+
+        XCTAssertFalse(
+            BackgroundTransferWaiterOwnership.mayFinish(
+                current: current,
+                requested: replaced
+            )
+        )
+        XCTAssertTrue(
+            BackgroundTransferWaiterOwnership.mayFinish(
+                current: current,
+                requested: current
+            )
+        )
+        XCTAssertTrue(
+            BackgroundTransferWaiterOwnership.mayFinish(
+                current: current,
+                requested: nil
+            ),
+            "a transport failure applies to whichever waiter owns the group"
+        )
+    }
+}
+
+/// Foregrounding or relaunching attaches a new waiter to tasks the system
+/// already owns. A range may finish during that handoff; the waiter must read
+/// the writer's durable completion state when it registers instead of waiting
+/// for a second completion callback that will never come.
+final class BackgroundTransferAdoptionTests: XCTestCase {
+
+    func testAChunkCompletedBeforeWaiterRegistrationIsNoLongerOutstanding() throws {
+        let scratch = FileManager.default.temporaryDirectory
+            .appendingPathComponent("background-adoption-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: scratch, withIntermediateDirectories: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: scratch) }
+
+        let staging = scratch.appendingPathComponent("staged.bin")
+        let sidecar = staging.appendingPathExtension("chunks")
+        let writer = try ChunkedFileWriter(
+            destination: staging,
+            sidecar: sidecar,
+            totalSize: 24,
+            chunkCount: 3
+        )
+        defer { writer.close() }
+
+        // This is the delegate winning the race just before `run` installs
+        // the replacement continuation.
+        try writer.write(Data(repeating: 0xAB, count: 8), at: 8, chunkIndex: 1)
+
+        let requested: Set<Int> = [0, 1, 2]
+        let remaining = BackgroundTransferAdoption.remainingSlots(
+            requested: requested,
+            completed: writer.completedChunkIndices()
+        )
+
+        XCTAssertEqual(remaining, [0, 2])
+    }
+
+    func testAHeldChunkArrivingDuringAdoptionIsSplicedBeforeRegistration() throws {
+        let scratch = FileManager.default.temporaryDirectory
+            .appendingPathComponent("background-held-adoption-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: scratch, withIntermediateDirectories: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: scratch) }
+
+        let staging = scratch.appendingPathComponent("staged.bin")
+        let sidecar = staging.appendingPathExtension("chunks")
+        let chunks = [
+            DownloadChunk(index: 0, start: 0, end: 7),
+            DownloadChunk(index: 1, start: 8, end: 15),
+            DownloadChunk(index: 2, start: 16, end: 23),
+        ]
+        let writer = try ChunkedFileWriter(
+            destination: staging,
+            sidecar: sidecar,
+            totalSize: 24,
+            chunkCount: 3
+        )
+        defer { writer.close() }
+
+        let held = BackgroundTransferCoordinator.heldChunkURL(
+            staging: staging, chunkIndex: 2)
+        try Data(repeating: 0xCD, count: 8).write(to: held)
+
+        BackgroundTransferCoordinator.spliceHeldChunks(
+            staging: staging, chunks: chunks, writer: writer)
+
+        XCTAssertEqual(writer.completedChunkIndices(), [2])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: held.path))
+    }
+
+    /// The inverse handoff ordering is just as important: `accept` can choose
+    /// the held path immediately before the adopter registers its writer, then
+    /// finish moving the range immediately afterward. Its post-hold recheck
+    /// must be able to splice that one range without another callback.
+    func testAChunkHeldJustAfterRegistrationCanBeSplicedImmediately() throws {
+        let scratch = FileManager.default.temporaryDirectory
+            .appendingPathComponent("background-post-register-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: scratch, withIntermediateDirectories: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: scratch) }
+
+        let staging = scratch.appendingPathComponent("staged.bin")
+        let sidecar = staging.appendingPathExtension("chunks")
+        let chunk = DownloadChunk(index: 1, start: 8, end: 15)
+        let writer = try ChunkedFileWriter(
+            destination: staging,
+            sidecar: sidecar,
+            totalSize: 16,
+            chunkCount: 2
+        )
+        defer { writer.close() }
+
+        let held = BackgroundTransferCoordinator.heldChunkURL(
+            staging: staging, chunkIndex: chunk.index)
+        try Data(repeating: 0xEF, count: 8).write(to: held)
+
+        XCTAssertTrue(
+            BackgroundTransferCoordinator.spliceHeldChunk(
+                staging: staging,
+                chunk: chunk,
+                writer: writer
+            )
+        )
+        XCTAssertEqual(writer.completedChunkIndices(), [1])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: held.path))
+    }
+}
+
 /// A range can land while no process is assembling its file — the system
 /// relaunches the app to hand it over, and the caller that wanted it is long
 /// gone. Those bytes wait on disk instead of being thrown away.
