@@ -532,6 +532,8 @@ actor RangedDownloadProgress {
     private let fileName: String
     private let progressHandler: ((Double, Int64, Int64, String) -> Void)?
     private var fileCompletedBytes: Int64 = 0
+    private var inFlightBytesBySlot: [Int: Int64] = [:]
+    private var completedSlots: Set<Int> = []
     private var lastReportedMegabytes: Int64 = -1
 
     init(
@@ -548,7 +550,32 @@ actor RangedDownloadProgress {
 
     func addCompletedBytes(_ bytes: Int64) {
         fileCompletedBytes += bytes
-        let completed = completedBeforeFile + fileCompletedBytes
+        reportIfNeeded()
+    }
+
+    /// Reports bytes arriving inside background download tasks without making
+    /// them durable resume points. `totalBytesWritten` is absolute for one
+    /// task, so retaining the largest observation avoids double-counting when
+    /// URLSession restarts a request after a redirect or recoverable failure.
+    func updateInFlightBytes(_ bytes: Int64, forSlot slot: Int, expectedBytes: Int64) {
+        guard !completedSlots.contains(slot) else { return }
+        let clamped = min(max(bytes, 0), max(expectedBytes, 0))
+        inFlightBytesBySlot[slot] = max(inFlightBytesBySlot[slot] ?? 0, clamped)
+        reportIfNeeded()
+    }
+
+    /// Atomically swaps a task's provisional byte count for the complete,
+    /// validated range so the same bytes are never counted twice.
+    func addCompletedBytes(_ bytes: Int64, forSlot slot: Int) {
+        guard completedSlots.insert(slot).inserted else { return }
+        inFlightBytesBySlot.removeValue(forKey: slot)
+        fileCompletedBytes += bytes
+        reportIfNeeded()
+    }
+
+    private func reportIfNeeded() {
+        let liveBytes = inFlightBytesBySlot.values.reduce(Int64.zero, +)
+        let completed = completedBeforeFile + fileCompletedBytes + liveBytes
         let displayedMegabytes = Int64((Double(completed) / 1_000_000.0).rounded())
         if completed < totalBytes, displayedMegabytes == lastReportedMegabytes {
             return

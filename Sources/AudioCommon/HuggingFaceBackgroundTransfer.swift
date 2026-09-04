@@ -376,6 +376,8 @@ final class BackgroundTransferCoordinator: NSObject, @unchecked Sendable {
                     }
                     let task = session.downloadTask(with: request)
                     task.taskDescription = description
+                    task.countOfBytesClientExpectsToSend = 0
+                    task.countOfBytesClientExpectsToReceive = item.length
                     task.resume()
                 }
             }
@@ -485,10 +487,32 @@ extension BackgroundTransferCoordinator: URLSessionDownloadDelegate {
         }
     }
 
-    /// Progress is reported per landed range, the same unit the in-process
-    /// path uses. Byte-level callbacks would double-count: the system restarts
-    /// a task from zero after a redirect or a recoverable failure, and the
-    /// bytes it already reported are not taken back.
+    func urlSession(
+        _ session: URLSession,
+        downloadTask: URLSessionDownloadTask,
+        didWriteData bytesWritten: Int64,
+        totalBytesWritten: Int64,
+        totalBytesExpectedToWrite: Int64
+    ) {
+        guard let item = BackgroundTransferItem.decoded(from: downloadTask.taskDescription),
+              item.chunkIndex != nil
+        else { return }
+        lock.lock()
+        let state = progress[item.groupKey]
+        lock.unlock()
+        guard let state else { return }
+        Task {
+            await state.updateInFlightBytes(
+                totalBytesWritten,
+                forSlot: item.slot,
+                expectedBytes: item.length
+            )
+        }
+    }
+
+    /// Replace the range's provisional live-byte count with its validated,
+    /// durable length. The progress actor ignores any delayed delegate update
+    /// for this slot after it lands.
     private func reportLanded(_ item: BackgroundTransferItem) {
         guard item.chunkIndex != nil else { return }
         lock.lock()
@@ -496,7 +520,7 @@ extension BackgroundTransferCoordinator: URLSessionDownloadDelegate {
         lock.unlock()
         guard let state else { return }
         let length = item.length
-        Task { await state.addCompletedBytes(length) }
+        Task { await state.addCompletedBytes(length, forSlot: item.slot) }
     }
 
     func urlSession(

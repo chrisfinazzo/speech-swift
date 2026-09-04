@@ -1,5 +1,89 @@
 import XCTest
+import os
 @testable import AudioCommon
+
+final class BackgroundTransferLiveProgressTests: XCTestCase {
+
+    func testInFlightBytesReportBeforeARangeLands() async {
+        let observations = OSAllocatedUnfairLock(initialState: [Int64]())
+        let progress = RangedDownloadProgress(
+            completedBeforeFile: 10_000_000,
+            totalBytes: 100_000_000,
+            fileName: "weights.bin"
+        ) { _, completed, _, _ in
+            observations.withLock { $0.append(completed) }
+        }
+
+        await progress.updateInFlightBytes(
+            1_100_000,
+            forSlot: 0,
+            expectedBytes: 8_000_000
+        )
+        await progress.updateInFlightBytes(
+            2_100_000,
+            forSlot: 0,
+            expectedBytes: 8_000_000
+        )
+
+        XCTAssertEqual(observations.withLock { $0.last }, 12_100_000)
+    }
+
+    func testLandingAChunkReplacesItsLiveBytesWithoutDoubleCounting() async {
+        let observations = OSAllocatedUnfairLock(initialState: [Int64]())
+        let progress = RangedDownloadProgress(
+            completedBeforeFile: 0,
+            totalBytes: 100_000_000,
+            fileName: "weights.bin"
+        ) { _, completed, _, _ in
+            observations.withLock { $0.append(completed) }
+        }
+
+        await progress.updateInFlightBytes(
+            4_000_000,
+            forSlot: 0,
+            expectedBytes: 8_000_000
+        )
+        await progress.updateInFlightBytes(
+            2_000_000,
+            forSlot: 1,
+            expectedBytes: 8_000_000
+        )
+        await progress.addCompletedBytes(8_000_000, forSlot: 0)
+
+        XCTAssertEqual(observations.withLock { $0.last }, 10_000_000)
+
+        await progress.updateInFlightBytes(
+            7_000_000,
+            forSlot: 0,
+            expectedBytes: 8_000_000
+        )
+        XCTAssertEqual(observations.withLock { $0.last }, 10_000_000)
+    }
+
+    func testAResetTaskObservationDoesNotDoubleCountPreviouslyReportedBytes() async {
+        let observations = OSAllocatedUnfairLock(initialState: [Int64]())
+        let progress = RangedDownloadProgress(
+            completedBeforeFile: 0,
+            totalBytes: 100_000_000,
+            fileName: "weights.bin"
+        ) { _, completed, _, _ in
+            observations.withLock { $0.append(completed) }
+        }
+
+        await progress.updateInFlightBytes(
+            5_000_000,
+            forSlot: 0,
+            expectedBytes: 8_000_000
+        )
+        await progress.updateInFlightBytes(
+            1_000_000,
+            forSlot: 0,
+            expectedBytes: 8_000_000
+        )
+
+        XCTAssertEqual(observations.withLock { $0.last }, 5_000_000)
+    }
+}
 
 /// A background transfer is delivered to whichever process the system chooses,
 /// which may be a fresh launch with no memory of starting it. Everything needed
