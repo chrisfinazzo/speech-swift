@@ -234,6 +234,12 @@ and model weights remain loaded. `transcribeBatch` shares the same cache
 ceiling; its greedy batch decoder does not clear the pool after each batch.
 No transcription options or CLI flags change.
 
+Clearing the pool reduces retained memory but requires new allocations on
+later requests, so short requests can take longer. Waiting for submitted
+decoder work to finish makes cleanup deterministic, including cancellation.
+See the [cache regression probe](../benchmarks/qwen3-asr.md) for measured
+memory and latency tradeoffs; results depend on hardware, model, and audio.
+
 ## Language Detection
 
 The model automatically detects the spoken language from the audio content. No language hint or locale parameter is required. The text decoder emits a language token at the start of generation, followed by the transcribed text. Supported languages include English, Chinese, Japanese, Korean, and many European languages.
