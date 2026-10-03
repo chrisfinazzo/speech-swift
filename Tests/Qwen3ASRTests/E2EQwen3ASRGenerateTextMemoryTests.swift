@@ -2,24 +2,18 @@ import XCTest
 import MLX
 @testable import Qwen3ASR
 
-/// Regression coverage for the MLX Metal buffer cache leak: `generateText`
-/// is the single choke point behind every transcription entry point
-/// (`transcribe(audio:...)`, `transcribe(audio:options:)`,
-/// `transcribeCheckingCancellation`), so every exit path — return, throw,
-/// or cancellation — must clear the MLX cache. Without that, a
-/// long-running process that repeatedly transcribes (e.g. `speech-server`)
-/// accumulates the cache across requests with nothing to release it.
+/// Single-input decoder exits must release reusable MLX buffers, including
+/// successful generation and cancellation before prefill or during decode.
 ///
-/// Uses the same weight-free, zero-layer decoder as
-/// `E2EQwen3ASRDecoderCancellationTests` so no download or real model
-/// weights are needed, but decoder evaluation still touches the GPU, so
-/// this runs with the E2E suites, not the unit job.
+/// Uses a weight-free, zero-layer decoder with the complete prompt
+/// vocabulary. Decoder evaluation touches the GPU, so this runs with
+/// the E2E suites without downloading model weights.
 final class E2EQwen3ASRGenerateTextMemoryTests: XCTestCase {
     private func makeModelAndDecoder(numAudioTokens: Int) -> (
         model: Qwen3ASRModel, decoder: QuantizedTextModel, audioEmbeds: MLXArray
     ) {
         var config = TextDecoderConfig()
-        config.vocabSize = 64
+        config.vocabSize = TextDecoderConfig.small.vocabSize
         config.hiddenSize = 64
         config.numLayers = 0
         config.intermediateSize = 64
@@ -34,12 +28,19 @@ final class E2EQwen3ASRGenerateTextMemoryTests: XCTestCase {
     /// Fills the MLX cache with an unrelated buffer so a no-op fix can't
     /// pass the assertion below by accident (the cache already being
     /// empty before `generateText` ever runs).
-    private func inflateCache() {
+    private func evaluateFiller() {
         let filler = MLXArray.zeros([1024, 1024])
         eval(filler)
     }
 
-    func testGenerateTextClearsMLXCacheOnSuccessfulReturn() throws {
+    private func inflateCache() {
+        evaluateFiller()
+        // Wait after the filler's Swift reference leaves scope: Metal's
+        // completion handler can retain its buffer beyond eval's return.
+        StreamOrDevice.default.stream.synchronize()
+    }
+
+    func testGenerateTextClearsMLXCacheOnSuccessfulReturn() {
         let priorCache = MLX.Memory.cacheLimit
         defer {
             MLX.Memory.cacheLimit = priorCache
@@ -53,7 +54,7 @@ final class E2EQwen3ASRGenerateTextMemoryTests: XCTestCase {
             "precondition: the filler buffer should be sitting in the cache")
 
         let (model, decoder, audioEmbeds) = makeModelAndDecoder(numAudioTokens: 4)
-        _ = try model.generateText(
+        _ = model.generateText(
             audioEmbeds: audioEmbeds,
             textDecoder: decoder,
             language: nil,
@@ -91,5 +92,60 @@ final class E2EQwen3ASRGenerateTextMemoryTests: XCTestCase {
         XCTAssertEqual(
             MLX.Memory.snapshot().cacheMemory, 0,
             "generateText must clear the MLX cache even when the request is cancelled")
+    }
+
+    func testGenerateTextClearsMLXCacheOnSlowPathReturn() {
+        let priorCache = Memory.cacheLimit
+        defer {
+            Memory.cacheLimit = priorCache
+            Memory.clearCache()
+        }
+        Memory.cacheLimit = 256 * 1024 * 1024
+        inflateCache()
+        XCTAssertGreaterThan(Memory.snapshot().cacheMemory, 0)
+        let (model, decoder, audioEmbeds) = makeModelAndDecoder(numAudioTokens: 4)
+        let text = model.generateText(
+            audioEmbeds: audioEmbeds, textDecoder: decoder,
+            language: nil, maxTokens: 3,
+            decodingOptions: Qwen3DecodingOptions(repetitionPenalty: 1.15),
+            checkCancellation: {})
+        XCTAssertFalse(text.isEmpty)
+        XCTAssertEqual(Memory.snapshot().cacheMemory, 0)
+    }
+
+    func testGenerateTextClearsMLXCacheAfterDecodeHasStarted() {
+        for slow in [false, true] {
+            let priorCache = Memory.cacheLimit
+            defer {
+                Memory.cacheLimit = priorCache
+                Memory.clearCache()
+            }
+            Memory.cacheLimit = 256 * 1024 * 1024
+            inflateCache()
+            XCTAssertGreaterThan(Memory.snapshot().cacheMemory, 0)
+            let (model, decoder, audioEmbeds) = makeModelAndDecoder(numAudioTokens: 4)
+            var checkpoints = 0
+            XCTAssertThrowsError(
+                try model.generateText(
+                    audioEmbeds: audioEmbeds, textDecoder: decoder,
+                    language: nil, maxTokens: 100,
+                    decodingOptions: slow
+                        ? Qwen3DecodingOptions(repetitionPenalty: 1.15)
+                        : Qwen3DecodingOptions(),
+                    checkCancellation: {
+                        checkpoints += 1
+                        if checkpoints == 4 { throw CancellationError() }
+                    })) { error in
+                        XCTAssertTrue(error is CancellationError)
+                    }
+            XCTAssertEqual(checkpoints, 4)
+            XCTAssertEqual(Memory.snapshot().cacheMemory, 0, "slow=\(slow)")
+        }
+    }
+
+    func testCancellationCleanupUsesTheScopedStream() {
+        Stream.withNewDefaultStream {
+            testGenerateTextClearsMLXCacheAfterDecodeHasStarted()
+        }
     }
 }

@@ -140,12 +140,9 @@ public class Qwen3ASRModel {
     /// Whether the model weights are loaded and ready for inference.
     var _isLoaded = true
 
-    /// MLX cache limit captured at load time for the .large variant. Stored
-    /// per-instance so `unload()` can restore it — preventing the 4 GB cap
-    /// from leaking into co-loaded models (PersonaPlex loads ASR + LM + TTS
-    /// in the same process). `nil` when no cap was applied (small variant
-    /// or already-capped global state).
-    var savedMLXCacheLimit: Int?
+    /// Registration in the shared cache-budget coordinator. Released by
+    /// `unload()` or automatically when this model is destroyed.
+    var mlxCacheLimitLease: Qwen3ASRCacheLimitCoordinator.Lease?
 
     init(
         audioConfig: Qwen3AudioEncoderConfig = .default,
@@ -414,14 +411,9 @@ public class Qwen3ASRModel {
     /// to the decoder loop, which invokes it before each token's work is
     /// submitted. Synchronous callers pass a no-op closure.
     ///
-    /// This is the single choke point behind every public transcription
-    /// entry point (`transcribe(audio:...)`, `transcribe(audio:options:)`,
-    /// `transcribeCheckingCancellation`), so `Memory.clearCache()` on exit
-    /// here — regardless of return, throw, or cancellation — returns MLX's
-    /// scratch buffers to the system after every request. Without it, a
-    /// long-running process that repeatedly transcribes (e.g.
-    /// `speech-server`) accumulates the MLX Metal buffer cache across
-    /// requests with nothing to release it between them.
+    /// Single-input transcription entry points share this decoder. Clear
+    /// reusable MLX buffers on return or cancellation so a long-running
+    /// process releases its scratch pool between requests.
     func generateText(
         audioEmbeds: MLXArray,
         textDecoder: QuantizedTextModel,
@@ -431,7 +423,28 @@ public class Qwen3ASRModel {
         decodingOptions: Qwen3DecodingOptions = Qwen3DecodingOptions(),
         checkCancellation: () throws -> Void
     ) rethrows -> String {
-        defer { Memory.clearCache() }
+        defer {
+            // Speculative greedy work can still be running at EOS or
+            // cancellation. Wait for its buffers to become reusable before
+            // clearing the pool, after the decoder's local arrays are gone.
+            StreamOrDevice.default.stream.synchronize()
+            Memory.clearCache()
+        }
+        return try generateTextImpl(
+            audioEmbeds: audioEmbeds, textDecoder: textDecoder,
+            language: language, maxTokens: maxTokens, context: context,
+            decodingOptions: decodingOptions, checkCancellation: checkCancellation)
+    }
+
+    private func generateTextImpl(
+        audioEmbeds: MLXArray,
+        textDecoder: QuantizedTextModel,
+        language: String?,
+        maxTokens: Int,
+        context: String?,
+        decodingOptions: Qwen3DecodingOptions,
+        checkCancellation: () throws -> Void
+    ) rethrows -> String {
         let T = Qwen3ASRTokens.self
         let numAudioTokens = audioEmbeds.dim(1)
         var inputIds: [Int32] = []
@@ -1250,17 +1263,8 @@ internal enum Qwen3ASRMemory {
         return max(0, min(fourGB, quarterRAM))
     }
 
-    /// MLX cache ceiling applied when loading the 0.6B variant. This used
-    /// to be unset for the small model (only `.large` got a cap), on the
-    /// assumption that its much smaller per-token working set made an
-    /// unbounded cache harmless. That held for a single load+transcribe,
-    /// but a long-running process that repeatedly transcribes with the
-    /// same loaded model (e.g. `speech-server`) keeps growing the MLX
-    /// Metal buffer cache across requests with nothing to bound it —
-    /// observed climbing from a ~3.4 GB baseline past 50 GB after a few
-    /// dozen real-world recordings, eventually forcing the system into
-    /// swap. The 0.6B decoder's working set is smaller than the 1.7B's,
-    /// so the cap can be tighter: `min(1 GB, 12.5% of physical RAM)`.
+    /// The 0.6B variant needs a smaller scratch pool than 1.7B. Bound it
+    /// to `min(1 GB, 12.5% of physical RAM)` for repeated transcription.
     static func cacheLimitForSmall(physicalMemoryBytes: Int) -> Int {
         let oneGB = 1 * 1024 * 1024 * 1024
         let eighthRAM = physicalMemoryBytes / 8
@@ -1386,36 +1390,15 @@ public extension Qwen3ASRModel {
 
         MetalBudget.pinMemory()
 
-        // Bug 4b: cap MLX scratch pool for both variants. Default cache
-        // limit tracks `recommendedMaxWorkingSetSize` which on a 16 GB Mac
-        // can grow to several GB during sustained decoding and trigger
-        // swap. This originally only capped the 1.7B variant; the 0.6B
-        // variant turned out to need one too — see `cacheLimitForSmall`.
-        // `min(4 GB, 25% RAM)` for 1.7B / `min(1 GB, 12.5% RAM)` for 0.6B
-        // leaves enough headroom for the respective per-token decoder
-        // working set while keeping total residency under the OS jetsam
-        // threshold.
-        //
-        // Process-global cap leak fix (adversarial review): we save the
-        // prior limit on the model instance and restore it in `unload()`,
-        // so co-loaded models in the same process (e.g. PersonaPlex
-        // loading ASR + LM + TTS) inherit our cap only for the lifetime
-        // of the loaded ASR. Stacks correctly across multiple ASR
-        // instances: each save captures whatever was active when it
-        // loaded, and each unload pops its own saved value.
-        do {
-            let physical = Int(ProcessInfo.processInfo.physicalMemory)
-            let newCap = modelSize == .large
-                ? Qwen3ASRMemory.cacheLimitForLarge(physicalMemoryBytes: physical)
-                : Qwen3ASRMemory.cacheLimitForSmall(physicalMemoryBytes: physical)
-            // Only apply the cap if it would lower the current limit —
-            // never raise a limit a caller has already chosen for itself.
-            let currentLimit = MLX.Memory.cacheLimit
-            if newCap > 0 && newCap < currentLimit {
-                model.savedMLXCacheLimit = currentLimit
-                MLX.Memory.cacheLimit = newCap
-            }
-        }
+        // Register both variants in the process-wide budget. The shared
+        // coordinator preserves the tightest live ceiling and the caller's
+        // budget, including when models unload in a different order.
+        let physical = Int(ProcessInfo.processInfo.physicalMemory)
+        let cacheCeiling = modelSize == .large
+            ? Qwen3ASRMemory.cacheLimitForLarge(physicalMemoryBytes: physical)
+            : Qwen3ASRMemory.cacheLimitForSmall(physicalMemoryBytes: physical)
+        model.mlxCacheLimitLease = Qwen3ASRCacheLimitCoordinator.shared.acquire(
+            ceiling: cacheCeiling)
 
         // Bug 4f: post-load memory snapshot. Difference vs `memBeforeLoad`
         // is the model's load-time footprint (weights + activations +
