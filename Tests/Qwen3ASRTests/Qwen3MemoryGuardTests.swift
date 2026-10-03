@@ -67,6 +67,78 @@ final class Qwen3MemoryGuardTests: XCTestCase {
         )
     }
 
+    // MARK: - cacheLimitForSmall
+
+    func testCacheLimitForSmall_8GBMacReturnsEighthRAM() {
+        // 8 GB / 8 = 1 GB, exactly the cap. min picks 1 GB.
+        let eightGB = 8 * 1024 * 1024 * 1024
+        let oneGB = 1 * 1024 * 1024 * 1024
+        XCTAssertEqual(
+            Qwen3ASRMemory.cacheLimitForSmall(physicalMemoryBytes: eightGB),
+            oneGB
+        )
+    }
+
+    func testCacheLimitForSmall_4GBMacReturnsEighthRAM() {
+        // 4 GB / 8 = 512 MB, which is below the 1 GB cap → eighth-RAM wins.
+        let fourGB = 4 * 1024 * 1024 * 1024
+        let fiveTwelveMB = 512 * 1024 * 1024
+        XCTAssertEqual(
+            Qwen3ASRMemory.cacheLimitForSmall(physicalMemoryBytes: fourGB),
+            fiveTwelveMB
+        )
+    }
+
+    func testCacheLimitForSmall_16GBMacCapDominates() {
+        // 16 GB / 8 = 2 GB; cap clamps to 1 GB.
+        let sixteenGB = 16 * 1024 * 1024 * 1024
+        let oneGB = 1 * 1024 * 1024 * 1024
+        XCTAssertEqual(
+            Qwen3ASRMemory.cacheLimitForSmall(physicalMemoryBytes: sixteenGB),
+            oneGB
+        )
+    }
+
+    func testCacheLimitForSmall_64GBMacCapDominates() {
+        // 64 GB / 8 = 8 GB; cap clamps to 1 GB.
+        let sixtyFourGB = 64 * 1024 * 1024 * 1024
+        let oneGB = 1 * 1024 * 1024 * 1024
+        XCTAssertEqual(
+            Qwen3ASRMemory.cacheLimitForSmall(physicalMemoryBytes: sixtyFourGB),
+            oneGB
+        )
+    }
+
+    func testCacheLimitForSmall_ZeroReturnsZero() {
+        // Edge case: 0 physical memory shouldn't underflow.
+        XCTAssertEqual(
+            Qwen3ASRMemory.cacheLimitForSmall(physicalMemoryBytes: 0),
+            0
+        )
+    }
+
+    func testCacheLimitForSmall_NegativeClampedToZero() {
+        // The max(0, …) clamp must absorb pathological negatives.
+        XCTAssertEqual(
+            Qwen3ASRMemory.cacheLimitForSmall(physicalMemoryBytes: Int.min),
+            0
+        )
+    }
+
+    func testCacheLimitForSmall_StaysBelowCacheLimitForLarge() {
+        // Sanity: the small-model cap must never exceed the large-model
+        // cap at the same RAM size — the 0.6B decoder's working set is
+        // smaller, so its ceiling should be tighter or equal, never looser.
+        for physicalGB in [4, 8, 16, 24, 32, 64, 128] {
+            let bytes = physicalGB * 1024 * 1024 * 1024
+            XCTAssertLessThanOrEqual(
+                Qwen3ASRMemory.cacheLimitForSmall(physicalMemoryBytes: bytes),
+                Qwen3ASRMemory.cacheLimitForLarge(physicalMemoryBytes: bytes),
+                "at \(physicalGB) GB RAM"
+            )
+        }
+    }
+
     // MARK: - shouldWarnForLarge
 
     func testShouldWarnForLarge_8GBWarns() {
