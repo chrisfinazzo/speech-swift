@@ -487,7 +487,7 @@ let package = Package(
         ),
         .testTarget(
             name: "MossVoiceGeneratorTTSTests",
-            dependencies: ["MossVoiceGeneratorTTS", "AudioCommon", "MLXCommon", .product(name: "MLX", package: "mlx-swift")],
+            dependencies: ["MossVoiceGeneratorTTS", "Qwen3TTS", "AudioCommon", "MLXCommon", .product(name: "MLX", package: "mlx-swift")],
             resources: [.copy("Fixtures")]
         ),
         .target(

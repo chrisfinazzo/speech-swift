@@ -27,8 +27,10 @@ measurement.
 The complete local bundle contains 7,793,146,620 bytes. MLX active model memory was
 7,777,465,356 bytes before unload; explicit unload reduced live MLX memory to 12
 bytes in both processes. Reusable spare buffers can remain within the restored
-caller/shared cache budget. Loading and model lifetime use a coordinated 512 MiB
-spare-buffer ceiling, without process-wide cache flushes. The process physical-
+caller/shared cache budget. Loading and model lifetime request a coordinated
+512 MiB spare-buffer budget, without process-wide cache flushes. This allocator
+setting is not a total process-memory limit; cached bytes can transiently exceed
+it by buffer granularity. The process physical-
 footprint column above is the measured memory value, rather than the smaller
 allocator counter. All eight final WAVs are byte-identical to the earlier
 profiles generated before this cache-ownership change.
@@ -65,6 +67,32 @@ audio does not establish unchanged performance.
 Model quality remains experimental. These checks verify native execution and
 specific content/lifecycle cases. This model has not yet been scored on
 InstructTTSEval.
+
+## Follow-up regression checks, 29 October 2026
+
+A same-executable control was stable in a quieter machine window. Qwen English
+generation differed by less than 2% between the archived old/new executables in
+both run orders. A separate 24-profile matched screen retained identical audio
+in all twelve pairs, but several timing/load comparisons and one Breeze physical-
+memory comparison exceeded the original thresholds. That memory increase was
+8.6%. These results do not certify unchanged latency or memory across all cases;
+the original measurements and threshold failures remain part of the evidence.
+
+A sequential process kept Qwen3-TTS loaded while MOSS was loaded, used, actively
+cancelled and unloaded. All twelve fixed-seed Qwen WAVs matched exactly. Its cache
+setting returned from 512 MiB to 2 GiB, and the original caller setting was restored
+after both models unloaded. Peak process physical memory was 14.147 GB, falling
+to 5.098 GB immediately after MOSS unload with Qwen still loaded. Qwen's warm
+real-time factor increased 8.0% while MOSS was resident and 10.5% afterward;
+first-audio latency increased 13.3% and 12.0%. This checks functional recovery and
+cache ownership for one English script. Concurrent generation, other scripts
+and other model pairs remain outside this check.
+
+The opt-in `E2EMossVoiceGeneratorCoexistenceTests` regression case checks complete
+Qwen audio and cache restoration with explicit local bundles. It makes no timing
+assertion. The documented public model-ID CLI commands for both new engines also
+produced complete WAVs; independent Parakeet transcription matched every word of
+their fixed five-word and nine-word English scripts.
 
 Runtime measurements must use a release build with its compiled MLX metallib and
 run one model at a time. Record model-load time separately from request time,
