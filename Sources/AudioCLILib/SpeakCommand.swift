@@ -21,13 +21,13 @@ import SpeechRestoration
 public struct SpeakCommand: ParsableCommand {
     public static let configuration = CommandConfiguration(
         commandName: "speak",
-        abstract: "Text-to-speech synthesis (Qwen3-TTS, CosyVoice, VoxCPM2, Pocket TTS, Voxtral, Fish Drama 3, IndexTTS2, F5-TTS, Higgs, Breeze TTS 2, Indic-Mio, Magpie, or MOSS-TTS-Nano). For Qwen3-TTS CoreML, use the `qwen3-tts-coreml` subcommand."
+        abstract: "Text-to-speech synthesis with local speech models, including FireRedTTS3-Instruct and MOSS-VoiceGenerator. For Qwen3-TTS CoreML, use the `qwen3-tts-coreml` subcommand."
     )
 
     @Argument(help: "Text to synthesize (omit when using --list-speakers or --batch-file)")
     public var text: String?
 
-    @Option(name: .long, help: "TTS engine: qwen3 (default), cosyvoice, voxcpm2, pocket, voxtral, fish-drama3, indextts2, f5, higgs, breeze, indic-mio, magpie, magpie-coreml, or moss-nano")
+    @Option(name: .long, help: "TTS engine: qwen3 (default), cosyvoice, voxcpm2, pocket, voxtral, fish-drama3, indextts2, f5, higgs, breeze, indic-mio, magpie, magpie-coreml, moss-nano, fireredtts3, or moss-voicegenerator")
     public var engine: String = "qwen3"
 
     @Option(name: .shortAndLong, help: "Output WAV file path")
@@ -59,8 +59,32 @@ public struct SpeakCommand: ParsableCommand {
     @Option(name: .long, help: "[qwen3] Speaker voice (requires --model customVoice)")
     public var speaker: String?
 
-    @Option(name: .long, help: "[qwen3/breeze] Style or voice-design instruction (Qwen3 requires CustomVoice)")
+    @Option(name: .long, help: "[qwen3/breeze/fireredtts3/moss-voicegenerator] Style or voice-design instruction (Qwen3 requires a CustomVoice or VoiceDesign checkpoint)")
     public var instruct: String?
+
+    @Option(name: .long, help: "[fireredtts3] Local exported FireRedTTS3-Instruct bundle; choose this or --fireredtts3-model-id")
+    public var fireredtts3BundleDir: String?
+
+    @Option(name: .long, help: "[fireredtts3] Explicit compatible exported Hugging Face bundle ID")
+    public var fireredtts3ModelId: String?
+
+    @Option(name: .long, help: "[fireredtts3] Maximum audio patches; reaching the limit raises an error")
+    public var fireredtts3MaxPatches: Int = 400
+
+    @Option(name: .long, help: "[fireredtts3] Flow-matching steps per audio patch")
+    public var fireredtts3FlowSteps: Int = 10
+
+    @Option(name: .long, help: "[moss-voicegenerator] Local exported bundle; choose this or --moss-voicegenerator-model-id")
+    public var mossVoicegeneratorBundleDir: String?
+
+    @Option(name: .long, help: "[moss-voicegenerator] Explicit compatible exported Hugging Face bundle ID")
+    public var mossVoicegeneratorModelId: String?
+
+    @Option(name: .long, help: "[moss-voicegenerator] Maximum audio frames; reaching the limit raises an error")
+    public var mossVoicegeneratorMaxFrames: Int = 750
+
+    @Option(name: .long, help: "[moss-voicegenerator] Frames per streamed PCM chunk (1...32)")
+    public var mossVoicegeneratorChunkFrames: Int = 3
 
     @Option(name: .long, help: "Reference audio file for voice cloning (qwen3 Base, cosyvoice, voxcpm2, fish-drama3, indextts2, f5, higgs, breeze, indic-mio, or moss-nano)")
     public var voiceSample: String?
@@ -130,7 +154,7 @@ public struct SpeakCommand: ParsableCommand {
     @Option(name: .long, help: "[cosyvoice] Crossfade between turns in seconds (default 0)")
     public var crossfade: Float = 0.0
 
-    @Option(name: .long, help: "[fish-drama3] Request-local sampling seed (default 0). [cosyvoice] MLX seed applied before each synthesis call. Fixes the flow-matching noise + Gumbel sampling + HiFiGAN init phase, so repeated calls with the same speaker embedding produce near-identical prosody and timbre across sections. Useful for long-form narration cut into chunks.")
+    @Option(name: .long, help: "[fish-drama3/fireredtts3/moss-voicegenerator] Request-local sampling seed (defaults 0/2/42). [cosyvoice] MLX seed applied before each synthesis call. Fixes the flow-matching noise + Gumbel sampling + HiFiGAN init phase, so repeated calls with the same speaker embedding produce near-identical prosody and timbre across sections. Useful for long-form narration cut into chunks.")
     public var seed: UInt64?
 
     @Option(name: .long, help: "[cosyvoice] Path to speech_tokenizer.safetensors (S3-Tokenizer-v3). When supplied, --voice-sample is upgraded from spk-only cloning (cos~0.83 cap) to upstream zero-shot conditioning with prompt_token + prompt_feat (preserves identity through emotion changes). Auto-detected in the bundle's cache dir if omitted.")
@@ -392,11 +416,14 @@ public struct SpeakCommand: ParsableCommand {
         let eng = engine.lowercased()
         guard eng == "qwen3" || eng == "cosyvoice" || eng == "voxcpm2"
                 || eng == "voxtral" || eng == "pocket" || eng == "fish-drama3"
-                || eng == "indextts2" || eng == "f5" || eng == "higgs" || eng == "breeze" || eng == "indic-mio" || eng == "magpie" || eng == "magpie-coreml" || eng == "moss-nano" else {
-            throw ValidationError("--engine must be 'qwen3', 'cosyvoice', 'voxcpm2', 'pocket', 'voxtral', 'fish-drama3', 'indextts2', 'f5', 'higgs', 'breeze', 'indic-mio', 'magpie', 'magpie-coreml', or 'moss-nano'. For Qwen3-TTS CoreML, use the `qwen3-tts-coreml` subcommand.")
+                || eng == "indextts2" || eng == "f5" || eng == "higgs" || eng == "breeze" || eng == "indic-mio" || eng == "magpie" || eng == "magpie-coreml" || eng == "moss-nano" || eng == "fireredtts3" || eng == "moss-voicegenerator" else {
+            throw ValidationError("Unknown TTS engine. Choose qwen3, cosyvoice, voxcpm2, pocket, voxtral, fish-drama3, indextts2, f5, higgs, breeze, indic-mio, magpie, magpie-coreml, moss-nano, fireredtts3, or moss-voicegenerator.")
         }
         if text == nil && batchFile == nil && !listSpeakers {
             throw ValidationError("Either a text argument, --batch-file, or --list-speakers must be provided")
+        }
+        if eng == "fireredtts3" || eng == "moss-voicegenerator" {
+            try validateInstructionTTS()
         }
         if eng == "fish-drama3" {
             guard ["balanced", "unrestricted"].contains(fishDrama3MemoryMode) else {
@@ -626,6 +653,10 @@ public struct SpeakCommand: ParsableCommand {
 
     public func run() throws {
         switch engine.lowercased() {
+        case "fireredtts3":
+            try runFireRedTTS3()
+        case "moss-voicegenerator":
+            try runMossVoiceGenerator()
         case "fish-drama3":
             try runFishDrama3()
         case "pocket":
