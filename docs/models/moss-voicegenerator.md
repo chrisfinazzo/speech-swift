@@ -34,6 +34,11 @@ fields contain the literal `None`. The script and instruction remain unchanged
 by default. `normalizeInputs` optionally applies the upstream punctuation and
 metadata cleanup; benchmark runs must record that setting.
 
+The native processor rejects text or instruction fields above 32,768 UTF-8 bytes
+before rendering or normalization. It admits at most 4,096 tokens in the complete
+rendered prompt before creating tensors. This bounds the initial dense attention
+mask independently of the checkpoint's larger total context.
+
 Audio codebooks have 1,024 values plus a padding value. Codebook number `n` starts
 `n` generation steps after the first book. A complete audio frame becomes
 available only after all sixteen values arrive. The native scheduler drains the

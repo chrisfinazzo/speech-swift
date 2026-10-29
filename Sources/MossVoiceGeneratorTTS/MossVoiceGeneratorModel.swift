@@ -45,8 +45,8 @@ public final class MossVoiceGeneratorModel:SpeechGenerationModel,ModelMemoryMana
         if clearNow {releaseResources()}
     }
     private func releaseResources() {
-        // Clear only this model's live parameters. The shared helper also
-        // flushes process-wide spare buffers that other loaded models may reuse.
+        // Clear only this model's parameters. Avoid the shared unload helper:
+        // it also flushes spare buffers that other loaded models may reuse.
         network.apply(filter:Module.filterAll) {_ in MLXArray()}
         codec.apply(filter:Module.filterAll) {_ in MLXArray()}
         tokenizer=nil
@@ -157,6 +157,7 @@ public final class MossVoiceGeneratorModel:SpeechGenerationModel,ModelMemoryMana
         try Task.checkCancellation()
         guard let tokenizer else {throw MossVoiceGeneratorError.unloaded}
         let rawIds=tokenizer.encode(prompt)
+        try MVGPrompt.validateTokenCount(rawIds.count)
         let maxSteps=options.maxFrames+16+256
         guard rawIds.count+maxSteps<=configuration.language.maxPositionEmbeddings else {throw MossVoiceGeneratorError.contextExceeded}
         guard rawIds.allSatisfy({$0>=0 && $0<configuration.language.vocabSize}) else {

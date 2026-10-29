@@ -8,7 +8,16 @@ import Tokenizers
 import Hub
 
 enum MVGPrompt {
+    static let maximumFieldBytes = 32768
+    static let maximumPromptTokens = 4096
+
     static func render(text:String,instruction:String,normalize:Bool=false)throws->String {
+        // Bound work before trimming, normalization, rendering or tokenization.
+        for value in [text,instruction] {
+            guard value.utf8.prefix(maximumFieldBytes+1).count<=maximumFieldBytes else {
+                throw MossVoiceGeneratorError.invalidInput("text and instruction must each fit 32768 UTF-8 bytes")
+            }
+        }
         guard !text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty,
               !instruction.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else {
             throw MossVoiceGeneratorError.invalidInput("text and voice instruction must both be nonempty")
@@ -22,6 +31,13 @@ enum MVGPrompt {
         let i=normalize ? cleanup(instruction,instruction:true) : instruction
         guard !t.isEmpty,!i.isEmpty else { throw MossVoiceGeneratorError.invalidInput("normalization removed all input") }
         return "<|im_start|>user\n<user_inst>\n- Reference(s):\nNone\n- Instruction:\n\(i)\n- Tokens:\nNone\n- Quality:\nNone\n- Sound Event:\nNone\n- Ambient Sound:\nNone\n- Language:\nNone\n- Text:\n\(t)\n</user_inst><|im_end|>\n<|im_start|>assistant\n"
+    }
+
+    /// Bound the dense prefill mask before allocating any prompt tensors.
+    static func validateTokenCount(_ count:Int)throws {
+        guard (1...maximumPromptTokens).contains(count) else {
+            throw MossVoiceGeneratorError.invalidInput("rendered prompt must contain 1...4096 tokenizer positions")
+        }
     }
 
     /// Matches the upstream processor, including keeping the last punctuation

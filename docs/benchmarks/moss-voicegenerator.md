@@ -47,6 +47,12 @@ measured.
 - Seven real-model checks passed, covering synthesis, tokenizer IDs, cancellation
   before and during generation, recovery, concurrent-request rejection and
   explicit/concurrent unloading.
+- Input-boundary checks cover UTF-8 byte limits, normalization and rendered
+  token counts. The real synthesis test rejects oversized raw and tokenized
+  prompts without emitting audio, then completes a normal request on the same
+  instance. Each field is limited to 32,768 bytes before preprocessing, and
+  the complete rendered prompt is limited to 4,096 tokenizer positions before
+  allocating its dense attention mask.
 - The native CLI generated a separate nine-word English script. After that
   synthesis child exited, an independent Parakeet child transcribed the saved WAV
   and matched all nine normalized words exactly.

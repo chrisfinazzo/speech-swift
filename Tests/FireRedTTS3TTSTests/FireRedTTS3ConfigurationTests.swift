@@ -19,6 +19,15 @@ final class FireRedTTS3ConfigurationTests: XCTestCase {
         }
     }
 
+    func testUTF8FieldBoundaryPreservesUnicodeInput() throws {
+        let boundary = String(repeating: "你", count: 10922) + "ab"
+        XCTAssertEqual(boundary.utf8.count, 32768)
+        XCTAssertTrue(try FireRedTTS3Prompt.build(text: boundary, instruction: "Calm voice.").contains(boundary))
+        let oversized = String(repeating: "你", count: 10923)
+        XCTAssertThrowsError(try FireRedTTS3Prompt.build(text: oversized, instruction: "Calm voice."))
+        XCTAssertThrowsError(try FireRedTTS3Prompt.build(text: "Hello.", instruction: oversized))
+    }
+
     func testSamplingLimitsRejectNonfiniteAndUnboundedRequests() throws {
         try FireRedTTS3Options().validate()
         var value = FireRedTTS3Options()

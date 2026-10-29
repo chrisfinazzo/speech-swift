@@ -35,6 +35,35 @@ final class MossVoiceGeneratorPromptTests:XCTestCase {
         XCTAssertThrowsError(try MVGPrompt.render(text:" ",instruction:"quiet"))
         XCTAssertThrowsError(try MVGPrompt.render(text:"[tag]",instruction:"quiet",normalize:true))
     }
+    func testFieldByteLimitPreservesBoundaryAndRejectsBothFields()throws {
+        let boundary=String(repeating:"a",count:32768)
+        XCTAssertTrue(try MVGPrompt.render(text:boundary,instruction:"quiet").contains(boundary))
+        XCTAssertTrue(try MVGPrompt.render(text:"hello",instruction:boundary).contains(boundary))
+        for value in [boundary+"a",String(repeating:" ",count:32769)] {
+            XCTAssertThrowsError(try MVGPrompt.render(text:value,instruction:"quiet"))
+            XCTAssertThrowsError(try MVGPrompt.render(text:"hello",instruction:value))
+        }
+    }
+    func testUnicodeLimitCountsUTF8BytesRatherThanCharacters()throws {
+        let boundary=String(repeating:"你",count:10922)+"ab"
+        XCTAssertEqual(boundary.utf8.count,32768)
+        XCTAssertTrue(try MVGPrompt.render(text:boundary,instruction:"quiet").contains(boundary))
+        let oversized=String(repeating:"你",count:10923)
+        XCTAssertThrowsError(try MVGPrompt.render(text:oversized,instruction:"quiet"))
+        XCTAssertThrowsError(try MVGPrompt.render(text:"hello",instruction:oversized))
+    }
+    func testNormalizationCannotBypassRawFieldLimit() {
+        let oversized=String(repeating:"[x]",count:11000)+"hello"
+        XCTAssertThrowsError(try MVGPrompt.render(text:oversized,instruction:"quiet",normalize:true))
+        XCTAssertThrowsError(try MVGPrompt.render(text:"hello",instruction:oversized,normalize:true))
+    }
+    func testRenderedPromptTokenLimitBeforeTensorAllocation()throws {
+        try MVGPrompt.validateTokenCount(1)
+        try MVGPrompt.validateTokenCount(4096)
+        for count in [-1,0,4097,40960,Int.max] {
+            XCTAssertThrowsError(try MVGPrompt.validateTokenCount(count))
+        }
+    }
 }
 
 final class MossVoiceGeneratorDelayPatternTests:XCTestCase {

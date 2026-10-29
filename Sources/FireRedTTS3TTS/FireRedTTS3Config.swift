@@ -137,8 +137,8 @@ enum FireRedTTS3Prompt {
 
     static func build(text: String, instruction: String) throws -> String {
         for value in [text, instruction] {
-            guard !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-                  value.utf8.count <= 32768,
+            guard value.utf8.prefix(32769).count <= 32768,
+                  !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   !value.contains("<|"), !value.contains("|>"),
                   !["<think>", "</think>", "<tool_call>", "</tool_call>", "<tool_response>", "</tool_response>"].contains(where: value.contains) else {
                 throw FireRedTTS3Error.invalidInput("text and instruction must be nonempty and contain no structural tokens")

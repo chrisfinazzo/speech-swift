@@ -29,6 +29,21 @@ final class E2EMossVoiceGeneratorTests:XCTestCase {
     }
     func testSynthesisProducesCompleteFiniteAudioAndContentArtifact()async throws {
         let model=try await MossVoiceGeneratorModel.fromBundle(bundle())
+        var rejectedChunks=0
+        for (oversizedText,limit) in [(String(repeating:"a",count:32769),"32768"),
+                                     (String(repeating:"hello ",count:5000),"4096")] {
+            do {
+                _=try await model.generateStreaming(text:oversizedText,instruction:"A calm adult voice.") {_ in
+                    rejectedChunks+=1
+                }
+                XCTFail("oversized request was accepted")
+            } catch let error as MossVoiceGeneratorError {
+                guard case .invalidInput(let reason)=error else {throw error}
+                XCTAssertTrue(reason.contains(limit),"expected the \(limit) limit, received \(reason)")
+            }
+        }
+        XCTAssertEqual(rejectedChunks,0,"rejected requests must not emit any audio")
+        XCTAssertTrue(model.isLoaded)
         let text="The little boat crossed the quiet lake before sunset."
         let options=MossVoiceGeneratorOptions(maxFrames:150,seed:42)
         var chunks:[AudioChunk]=[]
