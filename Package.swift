@@ -62,6 +62,8 @@ let package = Package(
             targets: ["F5TTS"]
         ),
         .library(name: "BreezeTTS", targets: ["BreezeTTS"]),
+        .library(name: "FireRedTTS3TTS", targets: ["FireRedTTS3TTS"]),
+        .library(name: "MossVoiceGeneratorTTS", targets: ["MossVoiceGeneratorTTS"]),
         .library(
             name: "HiggsTTS",
             targets: ["HiggsTTS"]
@@ -455,6 +457,38 @@ let package = Package(
                 .product(name: "MLXFast", package: "mlx-swift"),
                 .product(name: "Tokenizers", package: "swift-transformers"),
             ]
+        ),
+        .target(
+            name: "FireRedTTS3TTS",
+            dependencies: [
+                "AudioCommon", "MLXCommon",
+                .product(name: "MLX", package: "mlx-swift"),
+                .product(name: "MLXNN", package: "mlx-swift"),
+                .product(name: "MLXFast", package: "mlx-swift"),
+                .product(name: "MLXFFT", package: "mlx-swift"),
+                .product(name: "Tokenizers", package: "swift-transformers"),
+            ]
+        ),
+        .testTarget(
+            name: "FireRedTTS3TTSTests",
+            dependencies: ["FireRedTTS3TTS", "AudioCommon", .product(name: "MLX", package: "mlx-swift")],
+            resources: [.copy("Resources")]
+        ),
+        .target(
+            name: "MossVoiceGeneratorTTS",
+            dependencies: [
+                "AudioCommon", "MLXCommon",
+                .product(name: "MLX", package: "mlx-swift"),
+                .product(name: "MLXNN", package: "mlx-swift"),
+                .product(name: "MLXFast", package: "mlx-swift"),
+                .product(name: "Hub", package: "swift-transformers"),
+                .product(name: "Tokenizers", package: "swift-transformers"),
+            ]
+        ),
+        .testTarget(
+            name: "MossVoiceGeneratorTTSTests",
+            dependencies: ["MossVoiceGeneratorTTS", "Qwen3TTS", "AudioCommon", "MLXCommon", .product(name: "MLX", package: "mlx-swift")],
+            resources: [.copy("Fixtures")]
         ),
         .target(
             name: "HiggsTTS",
@@ -874,6 +908,8 @@ let package = Package(
                 "F5TTS",
                 "HiggsTTS",
                 "BreezeTTS",
+                "FireRedTTS3TTS",
+                "MossVoiceGeneratorTTS",
                 "IndexTTS2TTS",
                 "IndicMioTTS",
                 "MAGNeTMusicGen",
