@@ -106,6 +106,10 @@ let package = Package(
             targets: ["SourceSeparation"]
         ),
         .library(
+            name: "MusicTools",
+            targets: ["MusicTools"]
+        ),
+        .library(
             name: "CanaryASR",
             targets: ["CanaryASR"]
         ),
@@ -623,6 +627,9 @@ let package = Package(
             ]
         ),
         .target(
+            name: "MusicTools"
+        ),
+        .target(
             name: "CanaryASR",
             dependencies: [
                 "AudioCommon",
@@ -894,6 +901,7 @@ let package = Package(
                 "SpeechEnhancement",
                 "SpeechRestoration",
                 "SourceSeparation",
+                "MusicTools",
                 "ParakeetASR",
                 "ParakeetStreamingASR",
                 "NemotronStreamingASR",
@@ -1294,6 +1302,10 @@ let package = Package(
                 .product(name: "MLX", package: "mlx-swift"),
                 .product(name: "MLXRandom", package: "mlx-swift"),
             ]
+        ),
+        .testTarget(
+            name: "MusicToolsTests",
+            dependencies: ["MusicTools"]
         ),
         .testTarget(
             name: "VibeVoiceTTSTests",
