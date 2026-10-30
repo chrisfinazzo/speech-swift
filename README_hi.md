@@ -109,6 +109,7 @@ Speech Swift पैकेज के सत्यापन योग्य सं
 
 ## समाचार
 
+- **2026-10-30** — [वॉइस एजेंट का मूल्यांकन: बोलने की बारी, टूल कॉल और भावपूर्ण आवाज़](https://soniqo.audio/blog/voice-agent-benchmarks)
 - **10 Sep 2026** — [NVIDIA Nemotron VoiceChat on Apple Silicon — Full-Duplex Speech With Tools](https://blog.ivan.digital/nvidia-nemotron-voicechat-on-apple-silicon-full-duplex-speech-with-tools-6165625d55c4)
 - **19 Apr 2026** — [MLX vs CoreML on Apple Silicon — A Practical Guide to Picking the Right Backend](https://blog.ivan.digital/mlx-vs-coreml-on-apple-silicon-a-practical-guide-to-picking-the-right-backend-and-why-you-should-f77ddea7b27a)
 - **20 Mar 2026** — [We Beat Whisper Large v3 with a 600M Model Running Entirely on Your Mac](https://blog.ivan.digital/we-beat-whisper-large-v3-with-a-600m-model-running-entirely-on-your-mac-20e6ce191174)
@@ -226,6 +227,8 @@ struct DictateView: View {
 | [Audio2Face-3D](docs/models/audio2face3d.md) | स्पीच → चेहरा एनीमेशन | MLX | v2.3 Mark | भाषा-तटस्थ |
 | [Silero VAD](https://soniqo.audio/hi/guides/vad) | वॉयस एक्टिविटी डिटेक्शन | MLX, CoreML | 309K | भाषा-तटस्थ |
 | [Smart Turn v3.2](https://huggingface.co/aufklarer/Smart-Turn-v3.2-CoreML) | एंड-ऑफ़-टर्न डिटेक्शन | CoreML | 8M | 23 भाषाएँ |
+| [p99 turn-1-mini](docs/models/p99-turn-mini.md) | स्ट्रीमिंग में बोलने की बारी समाप्त होने का अनुमान | CoreML | 5.3M | अंग्रेज़ी |
+| [VAP (otoSpeech)](docs/models/vap.md) | दो चैनल की वाणी गतिविधि का अनुमान | CoreML | 5.8M | अंग्रेज़ी |
 | [KWS Zipformer](docs/models/kws-zipformer.md) | Audio → Wake word | CoreML (ANE) | 3M | EN/custom keywords |
 | [Pyannote](https://soniqo.audio/hi/guides/diarize) | VAD + Diarization | MLX | 1.5M | भाषा-तटस्थ |
 | [Pyannote Community-1](https://huggingface.co/aufklarer/Pyannote-Community-1-CoreML) | Diarization + स्पीकर embeddings | CoreML (ANE) + Swift VBx | 8.35M | भाषा-तटस्थ |

@@ -109,6 +109,7 @@
 
 ## Новости
 
+- **2026-10-30** — [Измеряем голосовых агентов: смена реплик, вызовы инструментов и выразительная речь](https://soniqo.audio/blog/voice-agent-benchmarks)
 - **10 сентября 2026** — [NVIDIA Nemotron VoiceChat on Apple Silicon — Full-Duplex Speech With Tools](https://blog.ivan.digital/nvidia-nemotron-voicechat-on-apple-silicon-full-duplex-speech-with-tools-6165625d55c4)
 - **19 апреля 2026** — [MLX vs CoreML on Apple Silicon — A Practical Guide to Picking the Right Backend](https://blog.ivan.digital/mlx-vs-coreml-on-apple-silicon-a-practical-guide-to-picking-the-right-backend-and-why-you-should-f77ddea7b27a)
 - **20 марта 2026** — [We Beat Whisper Large v3 with a 600M Model Running Entirely on Your Mac](https://blog.ivan.digital/we-beat-whisper-large-v3-with-a-600m-model-running-entirely-on-your-mac-20e6ce191174)
@@ -226,6 +227,8 @@ struct DictateView: View {
 | [Audio2Face-3D](docs/models/audio2face3d.md) | Речь → Анимация лица | MLX | v2.3 Mark | Универсальный |
 | [Silero VAD](https://soniqo.audio/ru/guides/vad) | Детектор речи | MLX, CoreML | 309K | Универсальный |
 | [Smart Turn v3.2](https://huggingface.co/aufklarer/Smart-Turn-v3.2-CoreML) | Определение конца реплики | CoreML | 8M | 23 языка |
+| [p99 turn-1-mini](docs/models/p99-turn-mini.md) | Потоковый прогноз завершения реплики | CoreML | 5.3M | Английский |
+| [VAP (otoSpeech)](docs/models/vap.md) | Прогноз речевой активности по двум каналам | CoreML | 5.8M | Английский |
 | [KWS Zipformer](docs/models/kws-zipformer.md) | Audio → Wake word | CoreML (ANE) | 3M | EN/custom keywords |
 | [Pyannote](https://soniqo.audio/ru/guides/diarize) | VAD + Диаризация | MLX | 1.5M | Универсальный |
 | [Pyannote Community-1](https://huggingface.co/aufklarer/Pyannote-Community-1-CoreML) | Диаризация + эмбеддинги спикеров | CoreML (ANE) + Swift VBx | 8.35M | Универсальный |

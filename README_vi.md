@@ -109,6 +109,7 @@ Papers: [Qwen3-ASR](https://arxiv.org/abs/2601.21337) (Alibaba) · [Qwen3-TTS](h
 
 ## Tin tức
 
+- **2026-10-30** — [Đo lường tác tử giọng nói: lượt lời, gọi công cụ và giọng nói biểu cảm](https://soniqo.audio/blog/voice-agent-benchmarks)
 - **10 thg 9, 2026** — [NVIDIA Nemotron VoiceChat trên Apple Silicon — Hội thoại full-duplex có gọi công cụ](https://blog.ivan.digital/nvidia-nemotron-voicechat-on-apple-silicon-full-duplex-speech-with-tools-6165625d55c4)
 - **19 thg 4, 2026** — [MLX so với CoreML trên Apple Silicon — Hướng dẫn thực tế để chọn backend phù hợp](https://blog.ivan.digital/mlx-vs-coreml-on-apple-silicon-a-practical-guide-to-picking-the-right-backend-and-why-you-should-f77ddea7b27a)
 - **20 thg 3, 2026** — [Chúng tôi đánh bại Whisper Large v3 bằng mô hình 600M chạy hoàn toàn trên Mac của bạn](https://blog.ivan.digital/we-beat-whisper-large-v3-with-a-600m-model-running-entirely-on-your-mac-20e6ce191174)
@@ -226,6 +227,8 @@ Xem tổng quan gọn bên dưới. **[Danh mục mô hình đầy đủ với k
 | [Audio2Face-3D](docs/models/audio2face3d.md) | Giọng nói → Hoạt ảnh khuôn mặt | MLX | v2.3 Mark | Không phụ thuộc ngôn ngữ |
 | [Silero VAD](https://soniqo.audio/guides/vad) | Phát hiện hoạt động giọng nói | MLX, CoreML | 309K | Không phụ thuộc ngôn ngữ |
 | [Smart Turn v3.2](https://huggingface.co/aufklarer/Smart-Turn-v3.2-CoreML) | Phát hiện kết thúc lượt nói | CoreML | 8M | 23 ngôn ngữ |
+| [p99 turn-1-mini](docs/models/p99-turn-mini.md) | Dự đoán kết thúc lượt lời trực tuyến | CoreML | 5.3M | Tiếng Anh |
+| [VAP (otoSpeech)](docs/models/vap.md) | Dự đoán hoạt động giọng nói hai kênh | CoreML | 5.8M | Tiếng Anh |
 | [KWS Zipformer](docs/models/kws-zipformer.md) | Audio → Wake word | CoreML (ANE) | 3M | EN/custom keywords |
 | [Pyannote](https://soniqo.audio/guides/diarize) | VAD + Phân tách người nói | MLX | 1.5M | Không phụ thuộc ngôn ngữ |
 | [Pyannote Community-1](https://huggingface.co/aufklarer/Pyannote-Community-1-CoreML) | Phân tách người nói + embedding người nói | CoreML (ANE) + Swift VBx | 8.35M | Không phụ thuộc ngôn ngữ |

@@ -109,6 +109,7 @@ Articles : [Qwen3-ASR](https://arxiv.org/abs/2601.21337) (Alibaba) · [Qwen3-TTS
 
 ## Actualites
 
+- **2026-10-30** — [Mesurer les agents vocaux : tours de parole, appels d’outils et voix expressive](https://soniqo.audio/blog/voice-agent-benchmarks)
 - **10 sept. 2026** -- [NVIDIA Nemotron VoiceChat sur Apple Silicon -- parole full-duplex avec outils](https://blog.ivan.digital/nvidia-nemotron-voicechat-on-apple-silicon-full-duplex-speech-with-tools-6165625d55c4)
 - **19 avr. 2026** -- [MLX vs CoreML sur Apple Silicon -- guide pratique pour choisir le bon backend](https://blog.ivan.digital/mlx-vs-coreml-on-apple-silicon-a-practical-guide-to-picking-the-right-backend-and-why-you-should-f77ddea7b27a)
 - **20 mars 2026** -- [Nous battons Whisper Large v3 avec un modele de 600M tournant entierement sur votre Mac](https://blog.ivan.digital/we-beat-whisper-large-v3-with-a-600m-model-running-entirely-on-your-mac-20e6ce191174)
@@ -226,6 +227,8 @@ Vue compacte ci-dessous. **[Catalogue complet des modeles avec tailles, quantifi
 | [Audio2Face-3D](docs/models/audio2face3d.md) | Parole → Animation faciale | MLX | v2.3 Mark | Agnostique |
 | [Silero VAD](https://soniqo.audio/fr/guides/vad) | Detection d'activite vocale | MLX, CoreML | 309K | Agnostique |
 | [Smart Turn v3.2](https://huggingface.co/aufklarer/Smart-Turn-v3.2-CoreML) | Detection de fin de tour | CoreML | 8M | 23 langues |
+| [p99 turn-1-mini](docs/models/p99-turn-mini.md) | Fin de tour en streaming | CoreML | 5.3M | Anglais |
+| [VAP (otoSpeech)](docs/models/vap.md) | Prévision vocale sur deux canaux | CoreML | 5.8M | Anglais |
 | [KWS Zipformer](docs/models/kws-zipformer.md) | Audio → Wake word | CoreML (ANE) | 3M | EN/custom keywords |
 | [Pyannote](https://soniqo.audio/fr/guides/diarize) | VAD + Diarisation | MLX | 1.5M | Agnostique |
 | [Pyannote Community-1](https://huggingface.co/aufklarer/Pyannote-Community-1-CoreML) | Diarisation + empreintes de locuteur | CoreML (ANE) + Swift VBx | 8.35M | Agnostique |

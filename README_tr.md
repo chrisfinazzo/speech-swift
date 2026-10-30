@@ -109,6 +109,7 @@ Makaleler: [Qwen3-ASR](https://arxiv.org/abs/2601.21337) (Alibaba) · [Qwen3-TTS
 
 ## Haberler
 
+- **2026-10-30** — [Sesli aracıları ölçmek: konuşma sırası, araç çağrıları ve ifadeli konuşma](https://soniqo.audio/blog/voice-agent-benchmarks)
 - **10 Eyl 2026** — [Apple Silicon'da NVIDIA Nemotron VoiceChat — Araç Çağıran Tam Çift Yönlü Konuşma](https://blog.ivan.digital/nvidia-nemotron-voicechat-on-apple-silicon-full-duplex-speech-with-tools-6165625d55c4)
 - **19 Nis 2026** — [Apple Silicon'da MLX vs CoreML — Doğru Backend'i Seçmek İçin Pratik Bir Rehber](https://blog.ivan.digital/mlx-vs-coreml-on-apple-silicon-a-practical-guide-to-picking-the-right-backend-and-why-you-should-f77ddea7b27a)
 - **20 Mar 2026** — [Tamamen Mac'inizde Çalışan 600M'lik Bir Modelle Whisper Large v3'ü Geçtik](https://blog.ivan.digital/we-beat-whisper-large-v3-with-a-600m-model-running-entirely-on-your-mac-20e6ce191174)
@@ -226,6 +227,8 @@ Aşağıda kompakt bir görünüm. **[Boyutlar, kuantizasyonlar, indirme URL'ler
 | [Audio2Face-3D](docs/models/audio2face3d.md) | Konuşma → Yüz animasyonu | MLX | v2.3 Mark | Bağımsız |
 | [Silero VAD](https://soniqo.audio/guides/vad) | Ses Etkinlik Algılama | MLX, CoreML | 309K | Bağımsız |
 | [Smart Turn v3.2](https://huggingface.co/aufklarer/Smart-Turn-v3.2-CoreML) | Konuşma Sırası Sonu Algılama | CoreML | 8M | 23 dil |
+| [p99 turn-1-mini](docs/models/p99-turn-mini.md) | Akışta konuşma sırasının bitişini tahmin etme | CoreML | 5.3M | İngilizce |
+| [VAP (otoSpeech)](docs/models/vap.md) | İki kanallı konuşma tahmini | CoreML | 5.8M | İngilizce |
 | [KWS Zipformer](docs/models/kws-zipformer.md) | Audio → Wake word | CoreML (ANE) | 3M | EN/custom keywords |
 | [Pyannote](https://soniqo.audio/guides/diarize) | VAD + Konuşmacı Ayrımı | MLX | 1.5M | Bağımsız |
 | [Pyannote Community-1](https://huggingface.co/aufklarer/Pyannote-Community-1-CoreML) | Konuşmacı ayrıştırma + konuşmacı gömmeleri | CoreML (ANE) + Swift VBx | 8.35M | Bağımsız |
