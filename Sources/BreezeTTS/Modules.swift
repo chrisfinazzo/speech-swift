@@ -4,14 +4,18 @@ import MLXCommon
 import MLXNN
 
 func breezeLinear(_ input: Int, _ output: Int, quantization: BreezeQuantization?) -> Linear {
-    makeMaybeQuantizedLinear(input, output, bias: false,
-                             groupSize: quantization?.groupSize ?? 64, bits: quantization?.bits ?? 0)
+    if quantization == nil {
+        return BreezeSmallBatchLinear(input, output, bias: false)
+    }
+    return makeMaybeQuantizedLinear(input, output, bias: false,
+                                    groupSize: quantization?.groupSize ?? 64, bits: quantization?.bits ?? 0)
 }
 
 final class BreezeKVCache {
     var keys: MLXArray?
     var values: MLXArray?
     var offset: Int { keys?.dim(2) ?? 0 }
+    var arrays: [MLXArray] { [keys, values].compactMap { $0 } }
 
     func update(_ k: MLXArray, _ v: MLXArray) -> (MLXArray, MLXArray) {
         let nextK = keys.map { concatenated([$0, k], axis: 2) } ?? k
@@ -196,6 +200,12 @@ final class BreezeDepthModel: Module {
         let hidden = backboneProjector?(backbone) ?? backbone
         let ids = MLXArray(Array(repeating: Int32(first), count: backbone.dim(0))).reshaped([backbone.dim(0), 1])
         return forward(concatenated([hidden.expandedDimensions(axis: 1), embedTokens(ids)], axis: 1), cache: cache)
+    }
+
+    func step(token: MLXArray, codebook: Int, batchSize: Int, cache: [BreezeKVCache]) -> MLXArray {
+        let ids = broadcast(token.asType(.int32).reshaped([1, 1]), to: [batchSize, 1])
+            + Int32(codebook * config.vocabSize)
+        return forward(embedTokens(ids), cache: cache)
     }
 
     func step(token: Int, codebook: Int, batchSize: Int, cache: [BreezeKVCache]) -> MLXArray {

@@ -9,8 +9,8 @@ import pathlib
 import shutil
 import subprocess
 processes = subprocess.check_output(["ps", "-axo", "comm="], text=True).splitlines()
-build_names = {"swift-build", "swift-test", "xctest", "breeze-tts-bench", "asr-bench", "vad-bench", "diarization-bench"}
-conflicts = [name for name in processes if pathlib.Path(name).name in build_names]
+build_names = {"swift-build", "swift-test", "swift-frontend", "xcodebuild", "xctest", "speech", "audio", "speech-server", "breeze-tts-bench", "asr-bench", "vad-bench", "diarization-bench"}
+conflicts = [name for name in processes if pathlib.Path(name).name in build_names or ".build/" in name]
 if conflicts:
     raise RuntimeError(f"Finish other build/test/benchmark processes first: {conflicts}")
 repo = pathlib.Path(__file__).resolve().parents[2]
@@ -23,7 +23,7 @@ manifest = repo / "Package.swift"
 original = manifest.read_bytes()
 addition = '''
 package.products.append(.executable(name: "breeze-tts-bench", targets: ["BreezeTTSProfile"]))
-package.targets.append(.executableTarget(name: "BreezeTTSProfile", dependencies: ["BreezeTTS", "AudioCommon", "Qwen3ASR"],
+package.targets.append(.executableTarget(name: "BreezeTTSProfile", dependencies: ["BreezeTTS", "AudioCommon", "Qwen3ASR", "BenchmarkSupport"],
     path: ".build/breeze-profile-sources"))
 '''
 try:

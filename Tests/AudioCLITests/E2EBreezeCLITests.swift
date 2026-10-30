@@ -12,7 +12,8 @@ final class E2EBreezeCLITests: XCTestCase {
         let process = Process(), pipe = Pipe()
         process.executableURL = URL(fileURLWithPath: binary)
         var arguments = ["speak", "The quick brown fox jumps over the lazy dog.", "--engine", "breeze",
-            "--instruct", "A clear English narrator.", "--stream", "-o", url.path]
+            "--instruct", "A clear English narrator.", "--stream", "--first-chunk-frames", "1",
+            "--chunk-frames", "2", "--breeze-cache-limit-mib", "1024", "-o", url.path]
         if let bundle = env["BREEZE_E2E_BUNDLE"] {
             arguments += ["--breeze-bundle-dir", bundle]
         }
