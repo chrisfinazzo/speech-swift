@@ -111,6 +111,7 @@ On-device iPhone 16 Pro CoreML benchmarks (RTF, tokens/s, peak memory): [docs/be
 
 ## News
 
+- **2026-10-30** — [Measuring voice agents: turn-taking, tool calls and expressive speech](https://soniqo.audio/blog/voice-agent-benchmarks)
 - **10 Sep 2026** — [NVIDIA Nemotron VoiceChat on Apple Silicon — Full-Duplex Speech With Tools](https://blog.ivan.digital/nvidia-nemotron-voicechat-on-apple-silicon-full-duplex-speech-with-tools-6165625d55c4)
 - **19 Apr 2026** — [MLX vs CoreML on Apple Silicon — A Practical Guide to Picking the Right Backend](https://blog.ivan.digital/mlx-vs-coreml-on-apple-silicon-a-practical-guide-to-picking-the-right-backend-and-why-you-should-f77ddea7b27a)
 - **20 Mar 2026** — [We Beat Whisper Large v3 with a 600M Model Running Entirely on Your Mac](https://blog.ivan.digital/we-beat-whisper-large-v3-with-a-600m-model-running-entirely-on-your-mac-20e6ce191174)
@@ -229,6 +230,8 @@ Compact view below. **[Full model catalogue with sizes, quantisations, download 
 | [Audio2Face-3D](docs/models/audio2face3d.md) | Speech → Facial animation | MLX | v2.3 Mark | Agnostic |
 | [Silero VAD](https://soniqo.audio/guides/vad) | Voice Activity Detection | MLX, CoreML | 309K | Agnostic |
 | [Smart Turn v3.2](https://huggingface.co/aufklarer/Smart-Turn-v3.2-CoreML) | End-of-Turn Detection | CoreML | 8M | 23 languages |
+| [p99 turn-1-mini](docs/models/p99-turn-mini.md) | Streaming turn completion | CoreML | 5.3M | English |
+| [VAP (otoSpeech)](docs/models/vap.md) | Two-channel speech forecasts | CoreML | 5.8M | English |
 | [KWS Zipformer](docs/models/kws-zipformer.md) | Audio → Wake word | CoreML (ANE) | 3M | EN/custom keywords |
 | [Pyannote](https://soniqo.audio/guides/diarize) | VAD + Diarization | MLX | 1.5M | Agnostic |
 | [Pyannote Community-1](https://huggingface.co/aufklarer/Pyannote-Community-1-CoreML) | Diarization + speaker embeddings | CoreML (ANE) + Swift VBx | 8.35M | Agnostic |

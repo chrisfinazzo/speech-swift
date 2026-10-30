@@ -109,6 +109,7 @@
 
 ## 动态
 
+- **2026-10-30** — [测量语音智能体：轮次切换、工具调用与富有表现力的语音](https://soniqo.audio/blog/voice-agent-benchmarks)
 - **2026 年 9 月 10 日** — [Apple Silicon 上的 NVIDIA Nemotron VoiceChat — 支持工具调用的全双工语音对话](https://blog.ivan.digital/nvidia-nemotron-voicechat-on-apple-silicon-full-duplex-speech-with-tools-6165625d55c4)
 - **2026 年 4 月 19 日** — [Apple Silicon 上的 MLX 与 CoreML — 如何选择合适的推理后端](https://blog.ivan.digital/mlx-vs-coreml-on-apple-silicon-a-practical-guide-to-picking-the-right-backend-and-why-you-should-f77ddea7b27a)
 - **2026 年 3 月 20 日** — [我们用一个 600M 模型在 Mac 上击败了 Whisper Large v3](https://blog.ivan.digital/we-beat-whisper-large-v3-with-a-600m-model-running-entirely-on-your-mac-20e6ce191174)
@@ -226,6 +227,8 @@ struct DictateView: View {
 | [Audio2Face-3D](docs/models/audio2face3d.md) | 语音 → 面部动画 | MLX | v2.3 Mark | 语言无关 |
 | [Silero VAD](https://soniqo.audio/zh/guides/vad) | 语音活动检测 | MLX、CoreML | 309K | 语言无关 |
 | [Smart Turn v3.2](https://huggingface.co/aufklarer/Smart-Turn-v3.2-CoreML) | 话轮结束检测 | CoreML | 8M | 23 种语言 |
+| [p99 turn-1-mini](docs/models/p99-turn-mini.md) | 流式话轮结束预测 | CoreML | 5.3M | 英语 |
+| [VAP (otoSpeech)](docs/models/vap.md) | 双通道语音活动预测 | CoreML | 5.8M | 英语 |
 | [KWS Zipformer](docs/models/kws-zipformer.md) | Audio → Wake word | CoreML (ANE) | 3M | EN/custom keywords |
 | [Pyannote](https://soniqo.audio/zh/guides/diarize) | VAD + 说话人分离 | MLX | 1.5M | 语言无关 |
 | [Pyannote Community-1](https://huggingface.co/aufklarer/Pyannote-Community-1-CoreML) | 说话人分离 + 说话人嵌入 | CoreML (ANE) + Swift VBx | 8.35M | 语言无关 |

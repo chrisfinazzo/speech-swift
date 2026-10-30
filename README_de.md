@@ -109,6 +109,7 @@ Paper: [Qwen3-ASR](https://arxiv.org/abs/2601.21337) (Alibaba) · [Qwen3-TTS](ht
 
 ## Neuigkeiten
 
+- **2026-10-30** — [Sprachagenten messen: Sprecherwechsel, Werkzeugaufrufe und ausdrucksstarke Sprache](https://soniqo.audio/blog/voice-agent-benchmarks)
 - **10. Sep. 2026** — [NVIDIA Nemotron VoiceChat auf Apple Silicon — Vollduplex-Sprache mit Tools](https://blog.ivan.digital/nvidia-nemotron-voicechat-on-apple-silicon-full-duplex-speech-with-tools-6165625d55c4)
 - **19. Apr. 2026** — [MLX vs. CoreML auf Apple Silicon — ein praktischer Leitfaden zur Wahl des Backends](https://blog.ivan.digital/mlx-vs-coreml-on-apple-silicon-a-practical-guide-to-picking-the-right-backend-and-why-you-should-f77ddea7b27a)
 - **20. März 2026** — [Wir schlagen Whisper Large v3 mit einem 600M-Modell, das vollständig auf deinem Mac läuft](https://blog.ivan.digital/we-beat-whisper-large-v3-with-a-600m-model-running-entirely-on-your-mac-20e6ce191174)
@@ -226,6 +227,8 @@ Kompakte Übersicht unten. **[Vollständiger Modellkatalog mit Größen, Quantis
 | [Audio2Face-3D](docs/models/audio2face3d.md) | Sprache → Gesichtsanimation | MLX | v2.3 Mark | Sprachunabhängig |
 | [Silero VAD](https://soniqo.audio/de/guides/vad) | Sprachaktivitätserkennung | MLX, CoreML | 309K | Sprachunabhängig |
 | [Smart Turn v3.2](https://huggingface.co/aufklarer/Smart-Turn-v3.2-CoreML) | End-of-Turn-Erkennung | CoreML | 8M | 23 Sprachen |
+| [p99 turn-1-mini](docs/models/p99-turn-mini.md) | Streaming-Vorhersage des Sprecherwechsels | CoreML | 5.3M | Englisch |
+| [VAP (otoSpeech)](docs/models/vap.md) | Sprachprognosen für zwei Kanäle | CoreML | 5.8M | Englisch |
 | [KWS Zipformer](docs/models/kws-zipformer.md) | Audio → Wake word | CoreML (ANE) | 3M | EN/custom keywords |
 | [Pyannote](https://soniqo.audio/de/guides/diarize) | VAD + Diarisierung | MLX | 1.5M | Sprachunabhängig |
 | [Pyannote Community-1](https://huggingface.co/aufklarer/Pyannote-Community-1-CoreML) | Diarisierung + Sprechereinbettungen | CoreML (ANE) + Swift VBx | 8.35M | Sprachunabhängig |

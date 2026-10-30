@@ -123,6 +123,7 @@
 
 <div dir="rtl">
 
+- **2026-10-30** — [قياس أداء الوكلاء الصوتيين: تبادل الأدوار واستدعاء الأدوات والكلام التعبيري](https://soniqo.audio/blog/voice-agent-benchmarks)
 - **10 سبتمبر 2026** — [NVIDIA Nemotron VoiceChat على Apple Silicon — كلام ثنائي الاتجاه الكامل مع الأدوات](https://blog.ivan.digital/nvidia-nemotron-voicechat-on-apple-silicon-full-duplex-speech-with-tools-6165625d55c4)
 - **19 أبريل 2026** — [MLX مقابل CoreML على Apple Silicon — دليل عملي لاختيار الواجهة الخلفية المناسبة](https://blog.ivan.digital/mlx-vs-coreml-on-apple-silicon-a-practical-guide-to-picking-the-right-backend-and-why-you-should-f77ddea7b27a)
 - **20 مارس 2026** — [تفوقنا على Whisper Large v3 بنموذج 600M يعمل بالكامل على جهاز Mac الخاص بك](https://blog.ivan.digital/we-beat-whisper-large-v3-with-a-600m-model-running-entirely-on-your-mac-20e6ce191174)
@@ -270,6 +271,8 @@ struct DictateView: View {
 | [Audio2Face-3D](docs/models/audio2face3d.md) | كلام → تحريك الوجه | MLX | v2.3 Mark | محايد للغة |
 | [Silero VAD](https://soniqo.audio/ar/guides/vad) | اكتشاف النشاط الصوتي | MLX, CoreML | 309K | محايد للغة |
 | [Smart Turn v3.2](https://huggingface.co/aufklarer/Smart-Turn-v3.2-CoreML) | اكتشاف نهاية الدور | CoreML | 8M | 23 لغة |
+| [p99 turn-1-mini](docs/models/p99-turn-mini.md) | توقع نهاية الدور أثناء البث | CoreML | 5.3M | الإنجليزية |
+| [VAP (otoSpeech)](docs/models/vap.md) | توقع النشاط الصوتي لقناتين | CoreML | 5.8M | الإنجليزية |
 | [KWS Zipformer](docs/models/kws-zipformer.md) | Audio → Wake word | CoreML (ANE) | 3M | EN/custom keywords |
 | [Pyannote](https://soniqo.audio/ar/guides/diarize) | VAD + تمييز | MLX | 1.5M | محايد للغة |
 | [Pyannote Community-1](https://huggingface.co/aufklarer/Pyannote-Community-1-CoreML) | فرز المتحدثين + تضمينات المتحدث | CoreML (ANE) + Swift VBx | 8.35M | محايد للغة |

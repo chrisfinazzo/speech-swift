@@ -109,6 +109,7 @@ Speech Swift 패키지 참조를 공개 소스에서 확인할 수 있는 저장
 
 ## 소식
 
+- **2026-10-30** — [음성 에이전트 측정: 발화 전환, 도구 호출, 표현력 있는 음성](https://soniqo.audio/blog/voice-agent-benchmarks)
 - **2026년 9월 10일** — [Apple Silicon에서 NVIDIA Nemotron VoiceChat — 도구 호출을 지원하는 전이중 음성 대화](https://blog.ivan.digital/nvidia-nemotron-voicechat-on-apple-silicon-full-duplex-speech-with-tools-6165625d55c4)
 - **2026년 4월 19일** — [Apple Silicon에서의 MLX와 CoreML — 올바른 백엔드 선택을 위한 실용 가이드](https://blog.ivan.digital/mlx-vs-coreml-on-apple-silicon-a-practical-guide-to-picking-the-right-backend-and-why-you-should-f77ddea7b27a)
 - **2026년 3월 20일** — [600M 모델로 Mac에서 Whisper Large v3를 능가하다](https://blog.ivan.digital/we-beat-whisper-large-v3-with-a-600m-model-running-entirely-on-your-mac-20e6ce191174)
@@ -226,6 +227,8 @@ struct DictateView: View {
 | [Audio2Face-3D](docs/models/audio2face3d.md) | 음성 → 얼굴 애니메이션 | MLX | v2.3 Mark | 언어 무관 |
 | [Silero VAD](https://soniqo.audio/ko/guides/vad) | 음성 활동 감지 | MLX, CoreML | 309K | 언어 무관 |
 | [Smart Turn v3.2](https://huggingface.co/aufklarer/Smart-Turn-v3.2-CoreML) | 발화 종료 감지 | CoreML | 8M | 23개 언어 |
+| [p99 turn-1-mini](docs/models/p99-turn-mini.md) | 스트리밍 발화 완료 예측 | CoreML | 5.3M | 영어 |
+| [VAP (otoSpeech)](docs/models/vap.md) | 두 채널 음성 활동 예측 | CoreML | 5.8M | 영어 |
 | [KWS Zipformer](docs/models/kws-zipformer.md) | Audio → Wake word | CoreML (ANE) | 3M | EN/custom keywords |
 | [Pyannote](https://soniqo.audio/ko/guides/diarize) | VAD + 화자 분리 | MLX | 1.5M | 언어 무관 |
 | [Pyannote Community-1](https://huggingface.co/aufklarer/Pyannote-Community-1-CoreML) | 화자 분리 + 화자 임베딩 | CoreML (ANE) + Swift VBx | 8.35M | 언어 무관 |
