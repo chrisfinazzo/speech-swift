@@ -69,41 +69,33 @@ final class E2ENemotronHarshAudioTests: XCTestCase {
         }
     }
 
-    /// Two Kokoro voices speaking different sentences, overlaid with the
-    /// second at -3 dB. The transcript must not contain any `<lang-XX>`
-    /// markers. (Quality of the transcript itself is intentionally not
-    /// asserted strictly — overlapping speech is genuinely hard.)
-    func testNoLangTagOnOverlappedSpeech() async throws {
+    /// Fixed two-voice Kokoro recording, with a 320 ms primary lead-in and
+    /// the second voice at -3 dB for the remaining overlapping speech.
+    /// Each fresh session must produce text without any `<lang-XX>` markers.
+    func testNoLangTagOnOverlappedSpeech() throws {
         let m = try model
-        let tts = try await KokoroTTSModel.fromPretrained()
+        XCTAssertEqual(m.config.vocabSize, 13087, "Language-tag regression requires the multilingual vocabulary")
+        let audioURL = try XCTUnwrap(
+            Bundle.module.url(forResource: "overlapped_speech", withExtension: "wav"))
+        let (mixed, sampleRate) = try AudioFileLoader.loadWAV(url: audioURL)
 
-        let primary = "The conference room had a long oak table beneath the windows"
-        let secondary = "Please verify your credentials and confirm the booking time"
-
-        let voiceA = try tts.synthesize(text: primary, voice: "af_heart")
-        let voiceB = try tts.synthesize(text: secondary, voice: "am_adam")
-        let mixed = HarshAudio.overlay(voiceA, voiceB, gainBdB: -3)
-        print("overlap mix: \(mixed.count) samples @ 24kHz = \(Float(mixed.count) / 24000) s")
-
-        // Decoding this mix is not deterministic and now and then yields an
-        // empty transcript, which is no leak. Every attempt must be free of
-        // language tags; at least one must say something.
-        var transcripts: [String] = []
-        for _ in 0..<3 {
-            let text = try m.transcribeAudio(mixed, sampleRate: 24000, language: "en-US")
-            print("Nemotron overlapped transcript: \"\(text)\"")
+        // Live Kokoro synthesis randomizes vocoder phases. Pin the audio and
+        // require every session to pass so retries cannot conceal empty output.
+        for attempt in 1...3 {
+            let text = try autoreleasepool {
+                try m.transcribeAudio(mixed, sampleRate: sampleRate, language: "en-US")
+            }
+            print("Nemotron overlapped transcript (decode \(attempt)): \"\(text)\"")
+            XCTAssertFalse(
+                text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                "Overlapped speech fixture produced empty output on decode \(attempt)"
+            )
             let tags = leakedLangTags(in: text)
             XCTAssertTrue(
                 tags.isEmpty,
                 "Nemotron leaked language tokens \(tags) under overlapped speech: \"\(text)\""
             )
-            transcripts.append(text)
-            if !text.isEmpty { break }
         }
-        XCTAssertTrue(
-            transcripts.contains { !$0.isEmpty },
-            "overlapped audio produced empty output in \(transcripts.count) attempts"
-        )
     }
 
     /// `test_audio.wav` + multi-talker babble derived from the same audio at

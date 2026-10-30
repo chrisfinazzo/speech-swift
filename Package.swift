@@ -1244,6 +1244,7 @@ let package = Package(
             dependencies: ["NemotronStreamingASR", "AudioCommon", "KokoroTTS"],
             resources: [
                 .copy("Resources/test_audio.wav"),
+                .copy("Resources/overlapped_speech.wav"),
                 .copy("Resources/english.json"),
             ]
         ),

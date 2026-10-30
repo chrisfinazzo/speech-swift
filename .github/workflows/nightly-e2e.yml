@@ -142,7 +142,12 @@ jobs:
           - name: qwen3-asr-streaming-mlx-coreml
             # StreamingASR loads ASR-0.6B-4bit + SileroVAD per test method;
             # 3 methods × fresh load = enough memory churn to deserve isolation.
-            filter: 'StreamingASRTests'
+            filter: '^Qwen3ASRTests[.]StreamingASRTests/'
+            skip: ''
+          - name: nemotron-streaming-mlx-coreml
+            # Match the target explicitly: an unanchored StreamingASRTests
+            # also selects Nemotron and Parakeet under the Qwen3 shard name.
+            filter: '^NemotronStreamingASRTests[.]'
             skip: ''
           - name: cosyvoice-mlx-coreml
             # Keep the full CosyVoice pipeline E2E, but skip the redundant
@@ -175,7 +180,7 @@ jobs:
       # Package.resolved is gitignored, so it never exists in the checkout and
       # never contributed to this key — hash the manifest alone.
       #
-      # The restore-keys fallbacks are kept deliberately: 13 shards each need a
+      # The restore-keys fallbacks are kept deliberately: each shard needs a
       # warm .build, and a manifest edit would otherwise cold-build all of them
       # inside the 30-minute shard cap. The risk they carry — restoring a stale
       # or corrupt archive — is handled by the resolve step below rather than by
