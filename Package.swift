@@ -456,6 +456,7 @@ let package = Package(
             name: "BreezeTTS",
             dependencies: [
                 "AudioCommon", "MLXCommon", "Qwen3TTS",
+                .product(name: "Hub", package: "swift-transformers"),
                 .product(name: "MLX", package: "mlx-swift"),
                 .product(name: "MLXNN", package: "mlx-swift"),
                 .product(name: "MLXFast", package: "mlx-swift"),

@@ -64,7 +64,7 @@ final class E2EBreezeTTSTests: XCTestCase {
         let fixture = try XCTUnwrap(Bundle.module.url(forResource: "tokenizer-fixtures", withExtension: "json", subdirectory: "Resources"))
         struct Row: Decodable { let text: String; let ids: [Int] }
         for row in try JSONDecoder().decode([Row].self, from: Data(contentsOf: fixture)) {
-            XCTAssertEqual(model!.tokenIDs(row.text), row.ids, row.text)
+            XCTAssertEqual(try model!.tokenIDs(row.text), row.ids, row.text)
         }
         var samples: [Float] = []
         var chunks = 0, finalChunks = 0

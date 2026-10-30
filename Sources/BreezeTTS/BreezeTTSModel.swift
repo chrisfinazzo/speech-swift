@@ -4,7 +4,6 @@ import MLX
 import MLXCommon
 import MLXNN
 import Qwen3TTS
-import Tokenizers
 
 final class BreezeNetwork: Module {
     @ModuleInfo(key: "lm_head") var lmHead: Linear
@@ -36,7 +35,7 @@ public final class BreezeTTSModel: SpeechGenerationModel, @unchecked Sendable {
     let network: BreezeNetwork
     private let decoder: SpeechTokenizerDecoder
     private var encoder: SpeechTokenizerEncoder?
-    private let tokenizer: Tokenizer
+    private let tokenizer: BreezeTextTokenizer
     private let generationLock = NSLock()
     private var generating = false
 
@@ -46,7 +45,7 @@ public final class BreezeTTSModel: SpeechGenerationModel, @unchecked Sendable {
     ]
 
     private init(config: BreezeTTSConfig, directory: URL, network: BreezeNetwork,
-                 decoder: SpeechTokenizerDecoder, tokenizer: Tokenizer) {
+                 decoder: SpeechTokenizerDecoder, tokenizer: BreezeTextTokenizer) {
         self.config = config; bundleDirectory = directory; self.network = network
         self.decoder = decoder; self.tokenizer = tokenizer
     }
@@ -76,7 +75,7 @@ public final class BreezeTTSModel: SpeechGenerationModel, @unchecked Sendable {
         }
         let config = try JSONDecoder().decode(BreezeTTSConfig.self,
             from: Data(contentsOf: directory.appendingPathComponent("config.json")))
-        let tokenizer = try await AutoTokenizer.from(modelFolder: directory)
+        let tokenizer = try await BreezeTextTokenizer.fromBundle(directory)
         progressHandler?(0.92, "Loading Breeze weights")
         let network = withThrowawayRandomState { BreezeNetwork(config: config) }
         let weights = sanitize(weights: try CommonWeightLoader.loadAllSafetensors(from: directory))
@@ -196,34 +195,44 @@ public final class BreezeTTSModel: SpeechGenerationModel, @unchecked Sendable {
             let logits = guided(network.lmHead(hidden), negative.map(network.lmHead.callAsFunction), scale: options.cfgScale)
             let first = sample(logits, allowsEOS: true, options: options, random: random)
             if first == config.audioVocabSize { reachedEOS = true; break }
-            var frame = [Int32(first)]
+            var frameTokens = [MLXArray(Int32(first))]
             let depthCache = network.depth.model.layers.map { _ in BreezeKVCache() }
             let branches = negative.map { concatenated([hidden, $0], axis: 0) } ?? hidden
             var depthHidden = network.depth.model.prefill(first: first, backbone: branches, cache: depthCache)
             for codebook in 1..<config.numCodebooks {
                 if codebook > 1 {
-                    depthHidden = network.depth.model.step(token: Int(frame.last!), codebook: codebook - 1,
+                    depthHidden = network.depth.model.step(token: frameTokens.last!, codebook: codebook - 1,
                         batchSize: branches.dim(0), cache: depthCache)
                 }
                 let depthLogits = network.depth.logits(depthHidden, codebook: codebook)
                 let combined = useGuidance
                     ? guided(depthLogits[0..<1], depthLogits[1..<2], scale: options.cfgScale) : depthLogits
-                frame.append(Int32(sample(combined, allowsEOS: false, options: options, random: random)))
-                // Materialize cache arrays each step to release intermediate attention graphs.
-                depthCache.forEach { $0.materialize() }
+                let token = breezeSampleCodebook(combined, codecVocabSize: config.codecVocabSize,
+                    audioVocabSize: config.audioVocabSize, allowsEOS: false, options: options, random: random)
+                frameTokens.append(token)
+                // Submit depth work without a host read for each codebook.
+                let state = [token] + depthCache.flatMap(\.arrays)
+                asyncEval(state)
             }
+            let frameCodes = stacked(frameTokens)
+            let frame = frameCodes.asArray(Int32.self)
             frames.append(frame)
             if frames.count - emitted >= threshold {
                 let samples = try decode(frames: frames, from: emitted, context: options.decoderLeftContext)
                 try await onChunk(AudioChunk(samples: samples, sampleRate: sampleRate, frameIndex: emitted, isFinal: false))
                 emitted = frames.count; threshold = options.chunkFrames
             }
-            let embeddings = network.backbone.embedTokens(MLXArray(frame).reshaped([1, 1, config.numCodebooks]))
+            let embeddings = network.backbone.embedTokens(frameCodes.reshaped([1, 1, config.numCodebooks]))
             hidden = network.backbone(embeddings, cache: cache)[0..., -1, 0...]
             if let negativeCache { negative = network.backbone(embeddings, cache: negativeCache)[0..., -1, 0...] }
-            eval(hidden)
-            if let negative { eval(negative) }
-            cache.forEach { $0.materialize() }; negativeCache?.forEach { $0.materialize() }
+            // Evaluate the hidden states and caches together to bound the lazy graph.
+            var backboneState: [MLXArray] = [hidden]
+            if let negative { backboneState.append(negative) }
+            backboneState.append(contentsOf: cache.flatMap(\.arrays))
+            if let negativeCache {
+                backboneState.append(contentsOf: negativeCache.flatMap(\.arrays))
+            }
+            eval(backboneState)
         }
         guard reachedEOS else { throw BreezeTTSError.frameLimit(options.maxFrames) }
         guard !frames.isEmpty else { throw BreezeTTSError.invalidInput("Breeze produced no audio frames") }
@@ -259,14 +268,14 @@ public final class BreezeTTSModel: SpeechGenerationModel, @unchecked Sendable {
     }
 
     private func textEmbeddings(_ text: String) throws -> MLXArray {
-        let ids = tokenIDs(text)
+        let ids = try tokenIDs(text)
         guard !ids.isEmpty, ids.count <= 2048, ids.allSatisfy({ $0 >= 0 && $0 < config.textEncoderConfig.vocabSize }) else {
             throw BreezeTTSError.invalidInput("Breeze text segment is empty, too long, or has invalid token IDs")
         }
         return network.textProjection(network.textEncoder(MLXArray(ids.map(Int32.init)).reshaped([1, -1])))
     }
 
-    func tokenIDs(_ text: String) -> [Int] { tokenizer.encode(text: text, addSpecialTokens: true) }
+    func tokenIDs(_ text: String) throws -> [Int] { try tokenizer.encode(text) }
 
     private func referenceEmbeddings(audio: [Float]?, text: String?) throws -> MLXArray? {
         guard let audio, let text else { return nil }
@@ -289,30 +298,9 @@ public final class BreezeTTSModel: SpeechGenerationModel, @unchecked Sendable {
 
     private func sample(_ logits: MLXArray, allowsEOS: Bool, options: BreezeTTSOptions,
                         random: MLXRandom.RandomState) -> Int {
-        // Only codec IDs 0...2047 and the backbone EOS (2051) may be sampled.
-        var values = logits[0, ..<config.codecVocabSize].asType(.float32)
-        if allowsEOS { values = concatenated([values, logits[0, config.audioVocabSize...config.audioVocabSize].asType(.float32)]) }
-        if options.temperature == 0 {
-            let index = argMax(values).item(Int.self)
-            return index == config.codecVocabSize ? config.audioVocabSize : index
-        }
-        values = values / options.temperature
-        if options.topK > 0 && options.topK < values.size {
-            let cutoff = sorted(values)[values.size - options.topK]
-            values = MLX.where(values .< cutoff, MLXArray(-Float.infinity), values)
-        }
-        if options.topP < 1 {
-            let order = argSort(-values)
-            let sorted = values[order]
-            let probabilities = softmax(sorted)
-            let keep = (cumsum(probabilities) - probabilities) .< options.topP
-            let filtered = MLX.where(keep, sorted, MLXArray(-Float.infinity))
-            let selected = MLXRandom.categorical(filtered, key: random.next()).item(Int.self)
-            let index = order[selected].item(Int.self)
-            return index == config.codecVocabSize ? config.audioVocabSize : index
-        }
-        let index = MLXRandom.categorical(values, key: random.next()).item(Int.self)
-        return index == config.codecVocabSize ? config.audioVocabSize : index
+        breezeSampleCodebook(logits, codecVocabSize: config.codecVocabSize,
+            audioVocabSize: config.audioVocabSize, allowsEOS: allowsEOS,
+            options: options, random: random).item(Int.self)
     }
 
     private func decode(frames: [[Int32]], from start: Int, context: Int) throws -> [Float] {

@@ -313,6 +313,9 @@ public struct SpeakCommand: ParsableCommand {
     @Option(name: .long, help: "[breeze] Load a local MLX bundle directory")
     public var breezeBundleDir: String?
 
+    @Option(name: .customLong("breeze-cache-limit-mib"), help: "[breeze] Reusable MLX cache budget in MiB for this process; 0 disables caching")
+    public var breezeCacheLimitMiB: Int?
+
     @Option(name: .long, help: "[breeze] Exact transcript of --voice-sample; required for cloning")
     public var breezeReferenceText: String?
 
@@ -530,6 +533,9 @@ public struct SpeakCommand: ParsableCommand {
             }
         }
         if eng == "breeze" {
+            if let budget = breezeCacheLimitMiB, !(0...(Int.max / 1_048_576)).contains(budget) {
+                throw ValidationError("--breeze-cache-limit-mib must be non-negative and fit in bytes")
+            }
             guard let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   batchFile == nil, !listSpeakers, speaker == nil else {
                 throw ValidationError("--engine breeze requires one nonempty text; use --instruct for voice design")
@@ -1638,6 +1644,7 @@ public struct SpeakCommand: ParsableCommand {
     private func runBreeze() throws {
         try runAsync {
             guard let text else { throw ValidationError("Breeze requires text") }
+            if let budget = breezeCacheLimitMiB { MLX.Memory.cacheLimit = budget * 1_048_576 }
             let loadStart = CFAbsoluteTimeGetCurrent()
             let model: BreezeTTSModel
             if let directory = breezeBundleDir {

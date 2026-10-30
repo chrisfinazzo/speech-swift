@@ -21,6 +21,19 @@ final class BreezeSpeakCommandTests: XCTestCase {
             "--breeze-reference-text", "Reference speech.", "--instruct", "Speak warmly"]).validate()
     }
 
+    func testCacheBudgetIsOptionalAndValidatedBeforeLoading() throws {
+        XCTAssertNil(try SpeakCommand.parse(["Hello", "--engine", "breeze"]).breezeCacheLimitMiB)
+        for budget in [0, 1024] {
+            let command = try SpeakCommand.parse(["Hello", "--engine", "breeze", "--breeze-cache-limit-mib", String(budget)])
+            try command.validate()
+            XCTAssertEqual(command.breezeCacheLimitMiB, budget)
+        }
+        for budget in [-1, Int.max] {
+            XCTAssertThrowsError(try SpeakCommand.parse(["Hello", "--engine", "breeze",
+                "--breeze-cache-limit-mib", String(budget)]).validate())
+        }
+    }
+
     func testInvalidControlsAndUnsupportedOptions() throws {
         for args in [["--breeze-top-p", "0"], ["--breeze-temperature", "nan"], ["--breeze-cfg-scale", "0"],
                      ["--breeze-max-frames", "0"], ["--first-chunk-frames", "0"], ["--language", "de"],

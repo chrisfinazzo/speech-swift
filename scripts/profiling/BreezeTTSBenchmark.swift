@@ -1,5 +1,6 @@
 import AudioCommon
 import BreezeTTS
+import BenchmarkSupport
 import Darwin
 import Foundation
 import MLX
@@ -33,6 +34,9 @@ struct BreezeTTSBenchmark {
         #if DEBUG
         throw ProfileError.invalidInput("Use a release build")
         #endif
+        let activity = ProcessInfo.processInfo.beginActivity(
+            options: [.userInitiated, .latencyCritical], reason: "Breeze TTS benchmark")
+        defer { ProcessInfo.processInfo.endActivity(activity) }
         setlinebuf(stdout)
         let args = CommandLine.arguments
         func option(_ name: String, _ fallback: String = "") -> String {
@@ -43,6 +47,13 @@ struct BreezeTTSBenchmark {
         if args.contains("--verify") {
             try await verify(URL(fileURLWithPath: option("--verify")), output: output)
             return
+        }
+        let cacheLimit = option("--mlx-cache-limit-mib")
+        if !cacheLimit.isEmpty {
+            guard let mib = Int(cacheLimit), (0...(Int.max / 1_048_576)).contains(mib) else {
+                throw ProfileError.invalidInput("Invalid MLX cache limit in MiB")
+            }
+            Memory.cacheLimit = mib * 1_048_576
         }
         let directory = URL(fileURLWithPath: option("--bundle"))
         let text = option("--text", "The quick brown fox jumps over the lazy dog.")
@@ -65,31 +76,53 @@ struct BreezeTTSBenchmark {
             firstChunkFrames: Int(option("--first-chunk-frames", "3")) ?? 0,
             chunkFrames: Int(option("--chunk-frames", "25")) ?? 0)
         try options.validate()
+        let prebufferSeconds = max(0.16, Double(options.chunkFrames) / 12.5)
         var rows: [[String: Any]] = []
         for index in 0...repeats {
             let started = now()
             var samples: [Float] = []
             var firstAudio: Double?
+            var firstActivity: Double?
+            var activity = BenchmarkAudioActivity()
+            var events: [[String: Any]] = []
+            var playback = BenchmarkStreamingLatency(sampleRate: model.sampleRate, prebufferSeconds: prebufferSeconds)
             var chunks = 0, firstSamples = 0, finalChunks = 0
             try await model.generateStreaming(text: text, instruction: instruction.isEmpty ? nil : instruction,
                 referenceAudio: reference, referenceText: reference == nil ? nil : referenceText, options: options) { chunk in
+                let arrival = now() - started
+                events.append(["arrival_seconds": arrival, "start_sample": samples.count,
+                               "samples": chunk.samples.count, "final": chunk.isFinal])
+                playback.append(samples: chunk.samples.count, arrivalSeconds: arrival)
                 if !chunk.samples.isEmpty {
-                    if firstAudio == nil { firstAudio = now() - started; firstSamples = chunk.samples.count }
+                    if firstAudio == nil { firstAudio = arrival; firstSamples = chunk.samples.count }
+                    activity.append(chunk.samples)
+                    if firstActivity == nil && activity.firstActiveSample != nil { firstActivity = arrival }
                     chunks += 1; samples += chunk.samples
                 }
                 if chunk.isFinal { finalChunks += 1 }
             }
             let elapsed = now() - started
+            playback.finish(at: elapsed)
             guard let firstAudio, finalChunks == 1, !samples.isEmpty, samples.allSatisfy(\.isFinite) else {
                 throw ProfileError.invalidInput("Invalid or incomplete waveform")
             }
             let duration = Double(samples.count) / Double(model.sampleRate)
             let wav = output.deletingLastPathComponent().appendingPathComponent(output.deletingPathExtension().lastPathComponent + "-\(index).wav")
             try WAVWriter.write(samples: samples, sampleRate: model.sampleRate, to: wav)
-            rows.append(["phase": index == 0 ? "cold" : "warm", "index": index, "wav": wav.path,
+            var row: [String: Any] = ["phase": index == 0 ? "cold" : "warm", "index": index, "wav": wav.path,
                 "text": text, "first_audio_seconds": firstAudio, "first_chunk_samples": firstSamples,
                 "chunks": chunks, "generation_seconds": elapsed, "audio_seconds": duration,
-                "rtf": elapsed / duration, "memory": memory()])
+                "rtf": elapsed / duration, "memory": memory(), "chunk_events": events,
+                "minimum_continuous_playback_start_seconds": playback.minimumContinuousStartSeconds]
+            if let ready = playback.prebufferReadySeconds, let extra = playback.additionalBufferSeconds {
+                row["estimated_cli_prebuffer_ready_seconds"] = ready
+                row["estimated_cli_additional_buffer_seconds"] = extra
+            }
+            if let firstActivity, let onset = activity.firstActiveSample {
+                row["first_active_audio_seconds"] = firstActivity
+                row["activity_onset_sample"] = onset
+            }
+            rows.append(row)
             print(String(format: "%@ %d: TTFA %.0f ms, %.2fs audio, %.2fs generation, RTF %.3f",
                          index == 0 ? "cold" : "warm", index, firstAudio * 1000, duration, elapsed, elapsed / duration))
             // Preserve partial results if a later repeat fails.
@@ -98,6 +131,9 @@ struct BreezeTTSBenchmark {
                 "text": text, "instruction": instruction, "reference_wav": referencePath,
                 "seed": options.seed, "cfg_scale": options.cfgScale,
                 "first_chunk_frames": options.firstChunkFrames, "chunk_frames": options.chunkFrames,
+                "cli_prebuffer_seconds": prebufferSeconds,
+                "mlx_cache_limit_bytes": Memory.cacheLimit,
+                "activity_window_samples": activity.windowSamples, "activity_rms_threshold": activity.rmsThreshold,
                 "runs": rows], to: output)
         }
     }
