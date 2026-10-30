@@ -226,8 +226,13 @@ public final class BreezeTTSModel: SpeechGenerationModel, @unchecked Sendable {
             hidden = network.backbone(embeddings, cache: cache)[0..., -1, 0...]
             if let negativeCache { negative = network.backbone(embeddings, cache: negativeCache)[0..., -1, 0...] }
             // Evaluate the hidden states and caches together to bound the lazy graph.
-            eval([hidden] + (negative.map { [$0] } ?? []) + cache.flatMap(\.arrays)
-                 + (negativeCache?.flatMap(\.arrays) ?? []))
+            var backboneState: [MLXArray] = [hidden]
+            if let negative { backboneState.append(negative) }
+            backboneState.append(contentsOf: cache.flatMap(\.arrays))
+            if let negativeCache {
+                backboneState.append(contentsOf: negativeCache.flatMap(\.arrays))
+            }
+            eval(backboneState)
         }
         guard reachedEOS else { throw BreezeTTSError.frameLimit(options.maxFrames) }
         guard !frames.isEmpty else { throw BreezeTTSError.invalidInput("Breeze produced no audio frames") }
